@@ -1,5 +1,9 @@
 import SwiftUI
 
+#if os(macOS)
+import AppKit
+#endif
+
 struct InspectorView: View {
     @EnvironmentObject private var store: ProofStore
 
@@ -80,15 +84,18 @@ private struct NodeInspectorView: View {
 
             Section("Statement") {
                 MultilineField(text: $node.statement, minHeight: 92)
+                RenderedMathPreview(text: node.statement)
             }
 
             Section("Context") {
                 MultilineField(text: $node.context, minHeight: 82)
+                RenderedMathPreview(text: node.context)
                 EditableStringList(title: "Assumptions", items: $node.assumptions, placeholder: "Assumption")
             }
 
             Section("Proof Sketch") {
                 MultilineField(text: $node.proofSketch, minHeight: 110)
+                RenderedMathPreview(text: node.proofSketch)
             }
 
             Section("Formal Block") {
@@ -99,6 +106,9 @@ private struct NodeInspectorView: View {
                 }
 
                 MultilineField(text: $node.formalCode, minHeight: 145, monospaced: true)
+                if node.formalDialect == .latex {
+                    RenderedMathPreview(text: node.formalCode)
+                }
 
                 let holes = FormalAnalyzer.holes(in: node.formalCode, dialect: node.formalDialect)
                 if !holes.isEmpty {
@@ -121,6 +131,21 @@ private struct NodeInspectorView: View {
                         store.syncFormalHoles(for: node.id)
                     } label: {
                         Label("Create Subgoals From Holes", systemImage: "target")
+                    }
+                }
+            }
+
+            Section("Source Link") {
+                TextField("Relative path, e.g. Proof/Main.lean", text: sourceFileBinding)
+                TextField("Line", text: sourceLineBinding)
+
+                if let sourceURL = store.sourceURL(for: node) {
+                    Button {
+                        #if os(macOS)
+                        NSWorkspace.shared.open(sourceURL)
+                        #endif
+                    } label: {
+                        Label("Open Source File", systemImage: "curlybraces")
                     }
                 }
             }
@@ -199,6 +224,26 @@ private struct NodeInspectorView: View {
 
     private func updateDefaultTarget() {
         edgeTargetID = store.project.nodes.first(where: { $0.id != node.id })?.id
+    }
+
+    private var sourceFileBinding: Binding<String> {
+        Binding(
+            get: { node.sourceFile ?? "" },
+            set: { value in
+                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                node.sourceFile = trimmed.isEmpty ? nil : trimmed
+            }
+        )
+    }
+
+    private var sourceLineBinding: Binding<String> {
+        Binding(
+            get: { node.sourceLine.map(String.init) ?? "" },
+            set: { value in
+                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                node.sourceLine = Int(trimmed)
+            }
+        )
     }
 }
 
@@ -294,10 +339,10 @@ private struct RelationRow: View {
                 .foregroundStyle(edge.kind.tint)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(relationTitle)
+                Text(LaTeXRenderer.render(relationTitle))
                     .font(.caption.weight(.semibold))
                 if !edge.label.isEmpty {
-                    Text(edge.label)
+                    Text(LaTeXRenderer.render(edge.label))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -428,3 +473,21 @@ private struct MultilineField: View {
     }
 }
 
+private struct RenderedMathPreview: View {
+    let text: String
+
+    var body: some View {
+        if LaTeXRenderer.containsRenderableLaTeX(text) {
+            Text(LaTeXRenderer.render(text))
+                .font(.callout)
+                .textSelection(.enabled)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                }
+        }
+    }
+}

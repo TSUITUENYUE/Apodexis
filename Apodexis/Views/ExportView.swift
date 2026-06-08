@@ -34,9 +34,6 @@ struct ExportView: View {
                 .padding()
             }
             .navigationTitle("Export")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
@@ -48,4 +45,3 @@ struct ExportView: View {
         .frame(minWidth: 640, minHeight: 520)
     }
 }
-

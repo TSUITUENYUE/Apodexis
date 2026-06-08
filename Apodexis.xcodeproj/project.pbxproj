@@ -17,16 +17,7 @@
 		A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* GraphWorkspaceView.swift */; };
 		A00100000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
 		A0010000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
-		A00110000000000000000001 /* ApodexisApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ApodexisApp.swift */; };
-		A00110000000000000000002 /* ProofModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* ProofModels.swift */; };
-		A00110000000000000000003 /* ProofStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* ProofStore.swift */; };
-		A00110000000000000000004 /* FormalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000004 /* FormalAnalyzer.swift */; };
-		A00110000000000000000005 /* PlatformClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000005 /* PlatformClipboard.swift */; };
-		A00110000000000000000006 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000006 /* ContentView.swift */; };
-		A00110000000000000000007 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* SidebarView.swift */; };
-		A00110000000000000000008 /* GraphWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* GraphWorkspaceView.swift */; };
-		A00110000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
-		A0011000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
+		A0010000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000B /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,13 +31,12 @@
 		A00000000000000000000008 /* GraphWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphWorkspaceView.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000A /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
+		A0000000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A000000000000000000000F1 /* ApodexisMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApodexisMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A000000000000000000000F2 /* ApodexisIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApodexisIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A00200000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A00210000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -66,6 +56,7 @@
 				A000000000000000000000B3 /* Store */,
 				A000000000000000000000B4 /* Views */,
 				A000000000000000000000B5 /* Utilities */,
+				A0000000000000000000000B /* Assets.xcassets */,
 			);
 			path = Apodexis;
 			sourceTree = "<group>";
@@ -119,7 +110,6 @@
 			isa = PBXGroup;
 			children = (
 				A000000000000000000000F1 /* ApodexisMac.app */,
-				A000000000000000000000F2 /* ApodexisIOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -144,23 +134,6 @@
 			productReference = A000000000000000000000F1 /* ApodexisMac.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A00310000000000000000001 /* ApodexisIOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ApodexisIOS" */;
-			buildPhases = (
-				A00210000000000000000002 /* Sources */,
-				A00210000000000000000001 /* Frameworks */,
-				A00210000000000000000003 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ApodexisIOS;
-			productName = ApodexisIOS;
-			productReference = A000000000000000000000F2 /* ApodexisIOS.app */;
-			productType = "com.apple.product-type.application";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -172,9 +145,6 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					A00300000000000000000001 = {
-						CreatedOnToolsVersion = 26.2;
-					};
-					A00310000000000000000001 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -193,14 +163,12 @@
 			projectRoot = "";
 			targets = (
 				A00300000000000000000001 /* ApodexisMac */,
-				A00310000000000000000001 /* ApodexisIOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A00200000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A00210000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00200000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A0010000000000000000000B /* Assets.xcassets in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -218,23 +186,6 @@
 				A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */,
 				A00100000000000000000009 /* InspectorView.swift in Sources */,
 				A0010000000000000000000A /* ExportView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A00210000000000000000002 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A00110000000000000000001 /* ApodexisApp.swift in Sources */,
-				A00110000000000000000002 /* ProofModels.swift in Sources */,
-				A00110000000000000000003 /* ProofStore.swift in Sources */,
-				A00110000000000000000004 /* FormalAnalyzer.swift in Sources */,
-				A00110000000000000000005 /* PlatformClipboard.swift in Sources */,
-				A00110000000000000000006 /* ContentView.swift in Sources */,
-				A00110000000000000000007 /* SidebarView.swift in Sources */,
-				A00110000000000000000008 /* GraphWorkspaceView.swift in Sources */,
-				A00110000000000000000009 /* InspectorView.swift in Sources */,
-				A0011000000000000000000A /* ExportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,6 +309,7 @@
 		A00610000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGNING_ALLOWED = NO;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -383,6 +335,7 @@
 		A00610000000000000000002 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGNING_ALLOWED = NO;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -405,60 +358,6 @@
 			};
 			name = Release;
 		};
-		A00620000000000000000001 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CODE_SIGNING_ALLOWED = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Apodexis;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.local.Apodexis.ios;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		A00620000000000000000002 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CODE_SIGNING_ALLOWED = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Apodexis;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.local.Apodexis.ios;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -467,15 +366,6 @@
 			buildConfigurations = (
 				A00610000000000000000001 /* Debug */,
 				A00610000000000000000002 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ApodexisIOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A00620000000000000000001 /* Debug */,
-				A00620000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

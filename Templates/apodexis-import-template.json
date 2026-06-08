@@ -67,6 +67,8 @@
       "proofSketch": "Use finite satisfiability to build compatible finite models, then pass to a global model.",
       "formalDialect": "lean",
       "formalCode": "theorem compactness_transfer\n  (Γ : Set Formula)\n  (h : finitely_satisfiable Γ) :\n  satisfiable Γ := by\n  sorry",
+      "sourceFile": "Proof/Main.lean",
+      "sourceLine": 12,
       "status": "inProgress",
       "verification": "partial",
       "position": {
@@ -98,6 +100,37 @@
       "tags": [
         "model-theory",
         "compactness"
+      ]
+    },
+    {
+      "id": "stronger-conjecture",
+      "branch": "main",
+      "type": "conjecture",
+      "title": "Stronger compactness variant",
+      "statement": "A stronger version of compactness may hold under the same finite satisfiability hypothesis plus a uniformity condition.",
+      "context": "Track this separately from the theorem until it is either proven or refuted.",
+      "proofSketch": "Try to identify whether the added uniformity condition is actually needed.",
+      "formalDialect": "latex",
+      "formalCode": "",
+      "status": "open",
+      "verification": "unchecked",
+      "position": {
+        "x": 930,
+        "y": 180
+      },
+      "assumptions": [
+        "Uniformity condition is available"
+      ],
+      "subgoals": [
+        {
+          "title": "Look for counterexamples",
+          "detail": "Decide whether the conjecture is genuinely stronger or follows from the theorem.",
+          "status": "open"
+        }
+      ],
+      "symbols": [],
+      "tags": [
+        "conjecture"
       ]
     },
     {
@@ -148,6 +181,8 @@
       "proofSketch": "If the library theorem has the exact statement, specialize it to Γ.",
       "formalDialect": "lean",
       "formalCode": "",
+      "sourceFile": "Proof/Compactness.lean",
+      "sourceLine": 44,
       "status": "blocked",
       "verification": "unchecked",
       "position": {
@@ -181,6 +216,11 @@
       "from": "finite-model-lemma",
       "to": "main-theorem",
       "type": "implies"
+    },
+    {
+      "from": "stronger-conjecture",
+      "to": "main-theorem",
+      "type": "generalizes"
     },
     {
       "from": "main-theorem",

@@ -10,6 +10,74 @@ struct ProofProject: Codable, Equatable {
     var updatedAt: Date = Date()
 }
 
+struct ProjectSummary: Codable, Identifiable, Equatable {
+    var id: UUID
+    var title: String
+    var branchCount: Int
+    var nodeCount: Int
+    var updatedAt: Date
+    var directoryPath: String?
+    var graphFileName: String
+    var storageFileName: String?
+    var isManaged: Bool
+
+    init(
+        id: UUID,
+        title: String,
+        branchCount: Int,
+        nodeCount: Int,
+        updatedAt: Date,
+        directoryPath: String?,
+        graphFileName: String = "apodexis.json",
+        storageFileName: String? = nil,
+        isManaged: Bool = false
+    ) {
+        self.id = id
+        self.title = title
+        self.branchCount = branchCount
+        self.nodeCount = nodeCount
+        self.updatedAt = updatedAt
+        self.directoryPath = directoryPath
+        self.graphFileName = graphFileName
+        self.storageFileName = storageFileName
+        self.isManaged = isManaged
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case branchCount
+        case nodeCount
+        case updatedAt
+        case directoryPath
+        case graphFileName
+        case storageFileName
+        case isManaged
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        branchCount = try container.decode(Int.self, forKey: .branchCount)
+        nodeCount = try container.decode(Int.self, forKey: .nodeCount)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        directoryPath = try container.decodeIfPresent(String.self, forKey: .directoryPath)
+        graphFileName = try container.decodeIfPresent(String.self, forKey: .graphFileName) ?? "apodexis.json"
+        storageFileName = try container.decodeIfPresent(String.self, forKey: .storageFileName)
+        isManaged = try container.decodeIfPresent(Bool.self, forKey: .isManaged) ?? true
+    }
+}
+
+struct ProjectFileItem: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let relativePath: String
+    let url: URL
+    let isDirectory: Bool
+    let children: [ProjectFileItem]?
+}
+
 struct ProofBranch: Codable, Identifiable, Equatable {
     var id: UUID = UUID()
     var name: String
@@ -38,6 +106,8 @@ struct ProofNode: Codable, Identifiable, Equatable {
     var subgoals: [ProofSubgoal]
     var symbols: [SymbolEntry]
     var tags: [String]
+    var sourceFile: String?
+    var sourceLine: Int?
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
 
@@ -77,10 +147,14 @@ struct GraphPoint: Codable, Hashable, Equatable {
 
 enum NodeKind: String, Codable, CaseIterable, Identifiable {
     case theorem
+    case conjecture
     case definition
     case assumption
     case lemma
     case claim
+    case proposal
+    case strategy
+    case conclusion
     case goal
     case reduction
     case caseSplit
@@ -95,10 +169,14 @@ enum NodeKind: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .theorem: "Theorem"
+        case .conjecture: "Conjecture"
         case .definition: "Definition"
         case .assumption: "Assumption"
         case .lemma: "Lemma"
         case .claim: "Claim"
+        case .proposal: "Proposal"
+        case .strategy: "Strategy"
+        case .conclusion: "Conclusion"
         case .goal: "Goal"
         case .reduction: "Reduction"
         case .caseSplit: "Case Split"
@@ -113,10 +191,14 @@ enum NodeKind: String, Codable, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .theorem: "seal"
+        case .conjecture: "questionmark.diamond"
         case .definition: "text.book.closed"
         case .assumption: "exclamationmark.triangle"
         case .lemma: "function"
         case .claim: "checkmark.seal"
+        case .proposal: "lightbulb"
+        case .strategy: "signpost.right"
+        case .conclusion: "flag.checkered"
         case .goal: "target"
         case .reduction: "arrow.down.right"
         case .caseSplit: "arrow.triangle.branch"
@@ -131,10 +213,14 @@ enum NodeKind: String, Codable, CaseIterable, Identifiable {
     var tint: Color {
         switch self {
         case .theorem: .indigo
+        case .conjecture: .yellow
         case .definition: .teal
         case .assumption: .orange
         case .lemma: .blue
         case .claim: .cyan
+        case .proposal: .orange
+        case .strategy: .purple
+        case .conclusion: .green
         case .goal: .pink
         case .reduction: .mint
         case .caseSplit: .purple
@@ -158,6 +244,14 @@ enum EdgeKind: String, Codable, CaseIterable, Identifiable {
     case dependsOnAssumption
     case forksFrom
     case refines
+    case supports
+    case requires
+    case motivates
+    case blocks
+    case diagnoses
+    case witnesses
+    case constrains
+    case summarizes
 
     var id: String { rawValue }
 
@@ -173,6 +267,14 @@ enum EdgeKind: String, Codable, CaseIterable, Identifiable {
         case .dependsOnAssumption: "depends on assumption"
         case .forksFrom: "forks from"
         case .refines: "refines"
+        case .supports: "supports"
+        case .requires: "requires"
+        case .motivates: "motivates"
+        case .blocks: "blocks"
+        case .diagnoses: "diagnoses"
+        case .witnesses: "witnesses"
+        case .constrains: "constrains"
+        case .summarizes: "summarizes"
         }
     }
 
@@ -188,6 +290,14 @@ enum EdgeKind: String, Codable, CaseIterable, Identifiable {
         case .dependsOnAssumption: .orange
         case .forksFrom: .pink
         case .refines: .cyan
+        case .supports: .green
+        case .requires: .orange
+        case .motivates: .purple
+        case .blocks: .red
+        case .diagnoses: .red
+        case .witnesses: .teal
+        case .constrains: .indigo
+        case .summarizes: .gray
         }
     }
 }
@@ -199,6 +309,7 @@ enum ProofStatus: String, Codable, CaseIterable, Identifiable {
     case needsReview
     case proven
     case failed
+    case abandoned
 
     var id: String { rawValue }
 
@@ -210,6 +321,7 @@ enum ProofStatus: String, Codable, CaseIterable, Identifiable {
         case .needsReview: "Needs Review"
         case .proven: "Proven"
         case .failed: "Failed"
+        case .abandoned: "Abandoned"
         }
     }
 
@@ -221,12 +333,14 @@ enum ProofStatus: String, Codable, CaseIterable, Identifiable {
         case .needsReview: .purple
         case .proven: .green
         case .failed: .gray
+        case .abandoned: .gray
         }
     }
 }
 
 enum VerificationStatus: String, Codable, CaseIterable, Identifiable {
     case unchecked
+    case checked
     case partial
     case checking
     case verified
@@ -237,6 +351,7 @@ enum VerificationStatus: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .unchecked: "Unchecked"
+        case .checked: "Checked"
         case .partial: "Partial"
         case .checking: "Checking"
         case .verified: "Verified"
@@ -247,6 +362,7 @@ enum VerificationStatus: String, Codable, CaseIterable, Identifiable {
     var tint: Color {
         switch self {
         case .unchecked: .gray
+        case .checked: .green
         case .partial: .orange
         case .checking: .blue
         case .verified: .green
@@ -257,6 +373,7 @@ enum VerificationStatus: String, Codable, CaseIterable, Identifiable {
 
 enum BranchStatus: String, Codable, CaseIterable, Identifiable {
     case active
+    case blocked
     case stuck
     case abandoned
     case merged
@@ -266,6 +383,7 @@ enum BranchStatus: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .active: "Active"
+        case .blocked: "Blocked"
         case .stuck: "Stuck"
         case .abandoned: "Abandoned"
         case .merged: "Merged"
@@ -298,6 +416,26 @@ enum FormalDialect: String, Codable, CaseIterable, Identifiable {
 }
 
 extension ProofProject {
+    static func blank(title: String) -> ProofProject {
+        let mainBranchID = UUID()
+        return ProofProject(
+            title: title,
+            branches: [
+                ProofBranch(
+                    id: mainBranchID,
+                    name: "Main",
+                    summary: "Primary proof route.",
+                    parentBranchID: nil,
+                    forkedFromNodeID: nil,
+                    status: .active,
+                    colorName: "blue"
+                )
+            ],
+            nodes: [],
+            edges: []
+        )
+    }
+
     static func sample() -> ProofProject {
         let mainBranchID = UUID()
         let alternativeBranchID = UUID()
@@ -486,4 +624,3 @@ extension ProofProject {
         )
     }
 }
-

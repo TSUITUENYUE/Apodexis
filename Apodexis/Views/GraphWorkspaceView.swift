@@ -1,10 +1,6 @@
 import SwiftUI
 
-#if os(iOS)
-import UIKit
-#elseif os(macOS)
 import AppKit
-#endif
 
 struct GraphWorkspaceView: View {
     @EnvironmentObject private var store: ProofStore
@@ -25,12 +21,12 @@ private struct WorkspaceHeader: View {
     var body: some View {
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(store.selectedBranch?.name ?? "All Branches")
+                Text(LaTeXRenderer.render(store.selectedBranch?.name ?? "All Branches"))
                     .font(.headline)
                     .lineLimit(1)
 
                 if let summary = store.selectedBranch?.summary, !summary.isEmpty {
-                    Text(summary)
+                    Text(LaTeXRenderer.render(summary))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -88,31 +84,83 @@ private struct MetricPill: View {
 private struct GraphCanvasView: View {
     @EnvironmentObject private var store: ProofStore
 
-    private let canvasSize = CGSize(width: 1600, height: 1050)
+    private static let branchFocusID = "branch-focus"
 
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            ZStack(alignment: .topLeading) {
-                Canvas { context, _ in
-                    drawEdges(in: context)
-                }
-                .frame(width: canvasSize.width, height: canvasSize.height)
-                .allowsHitTesting(false)
+        ScrollViewReader { proxy in
+            ZStack(alignment: .topTrailing) {
+                ScrollView([.horizontal, .vertical]) {
+                    ZStack(alignment: .topLeading) {
+                        Canvas { context, _ in
+                            drawEdges(in: context)
+                        }
+                        .frame(width: canvasSize.width, height: canvasSize.height)
+                        .allowsHitTesting(false)
 
-                ForEach(visibleEdges) { edge in
-                    if let source = node(edge.sourceID), let target = node(edge.targetID) {
-                        EdgeLabel(edge: edge)
-                            .position(edgeLabelPosition(source: source, target: target))
+                        ForEach(visibleEdges) { edge in
+                            if let source = node(edge.sourceID), let target = node(edge.targetID) {
+                                EdgeLabel(edge: edge)
+                                    .position(edgeLabelPosition(source: source, target: target))
+                            }
+                        }
+
+                        Color.clear
+                            .frame(width: 1, height: 1)
+                            .position(branchFocusPoint)
+                            .id(Self.branchFocusID)
+
+                        ForEach(store.visibleNodes) { node in
+                            GraphNodeCard(
+                                node: node,
+                                onDragEnded: { point in
+                                    store.moveNode(id: node.id, to: point)
+                                }
+                            )
+                            .position(cgPosition(for: node))
+                        }
                     }
+                    .frame(width: canvasSize.width, height: canvasSize.height)
+                    .background(canvasBackground)
                 }
 
-                ForEach(store.visibleNodes) { node in
-                    GraphNodeCard(node: node)
-                        .position(CGPoint(x: node.position.x, y: node.position.y))
+                HStack(spacing: 8) {
+                    Button {
+                        store.autoLayoutSelectedBranch()
+                        centerBranch(proxy)
+                    } label: {
+                        Image(systemName: "rectangle.connected.to.line.below")
+                            .font(.body.weight(.semibold))
+                            .frame(width: 34, height: 34)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Auto layout")
+
+                    Button {
+                        centerBranch(proxy)
+                    } label: {
+                        Image(systemName: "scope")
+                            .font(.body.weight(.semibold))
+                            .frame(width: 34, height: 34)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Center branch")
                 }
+                .padding(14)
             }
-            .frame(width: canvasSize.width, height: canvasSize.height)
-            .background(canvasBackground)
+            .onAppear {
+                centerBranch(proxy, animated: false)
+            }
+            .onChange(of: store.selectedBranchID) {
+                centerBranch(proxy)
+            }
+            .onChange(of: store.project.id) {
+                centerBranch(proxy, animated: false)
+            }
+            .onChange(of: store.layoutRevision) {
+                centerBranch(proxy, animated: false)
+            }
         }
     }
 
@@ -122,6 +170,42 @@ private struct GraphCanvasView: View {
             GridPattern()
                 .stroke(Color.primary.opacity(0.06), lineWidth: 1)
         }
+    }
+
+    private var canvasSize: CGSize {
+        let bounds = visibleBounds
+        return CGSize(
+            width: max(GraphMetrics.minimumCanvasSize.width, bounds.maxX + GraphMetrics.canvasPadding),
+            height: max(GraphMetrics.minimumCanvasSize.height, bounds.maxY + GraphMetrics.canvasPadding)
+        )
+    }
+
+    private var visibleBounds: CGRect {
+        guard !store.visibleNodes.isEmpty else {
+            return CGRect(origin: .zero, size: GraphMetrics.minimumCanvasSize)
+        }
+
+        let positions = store.visibleNodes.map { cgPosition(for: $0) }
+        let minX = positions.map(\.x).min() ?? 0
+        let maxX = positions.map(\.x).max() ?? 0
+        let minY = positions.map(\.y).min() ?? 0
+        let maxY = positions.map(\.y).max() ?? 0
+
+        return CGRect(
+            x: minX - GraphMetrics.cardSize.width / 2,
+            y: minY - GraphMetrics.cardSize.height / 2,
+            width: maxX - minX + GraphMetrics.cardSize.width,
+            height: maxY - minY + GraphMetrics.cardSize.height
+        )
+    }
+
+    private var branchFocusPoint: CGPoint {
+        let bounds = visibleBounds
+        let size = canvasSize
+        return CGPoint(
+            x: max(1, min(size.width - 1, bounds.midX)),
+            y: max(1, min(size.height - 1, bounds.midY))
+        )
     }
 
     private var visibleNodeIDs: Set<UUID> {
@@ -138,24 +222,57 @@ private struct GraphCanvasView: View {
         store.project.nodes.first { $0.id == id }
     }
 
+    private func cgPosition(for node: ProofNode) -> CGPoint {
+        let point = node.position
+        return CGPoint(x: point.x, y: point.y)
+    }
+
     private func drawEdges(in context: GraphicsContext) {
         for edge in visibleEdges {
             guard let source = node(edge.sourceID), let target = node(edge.targetID) else { continue }
 
-            let start = CGPoint(x: source.position.x + 110, y: source.position.y)
-            let end = CGPoint(x: target.position.x - 110, y: target.position.y)
-            let controlOffset = max(80, abs(end.x - start.x) * 0.35)
-            let controlA = CGPoint(x: start.x + controlOffset, y: start.y)
-            let controlB = CGPoint(x: end.x - controlOffset, y: end.y)
+            let sourceCenter = cgPosition(for: source)
+            let targetCenter = cgPosition(for: target)
+            let start = connectionPoint(from: sourceCenter, toward: targetCenter)
+            let end = connectionPoint(from: targetCenter, toward: sourceCenter)
+            let deltaX = end.x - start.x
+            let deltaY = end.y - start.y
+            let horizontalOffset = max(70, min(260, abs(deltaX) * 0.38))
+            let direction: CGFloat = deltaX >= 0 ? 1 : -1
+            let controlA: CGPoint
+            let controlB: CGPoint
+
+            if abs(deltaX) < 50 {
+                controlA = CGPoint(x: start.x, y: start.y + deltaY * 0.36)
+                controlB = CGPoint(x: end.x, y: end.y - deltaY * 0.36)
+            } else {
+                controlA = CGPoint(x: start.x + horizontalOffset * direction, y: start.y)
+                controlB = CGPoint(x: end.x - horizontalOffset * direction, y: end.y)
+            }
 
             var path = Path()
             path.move(to: start)
             path.addCurve(to: end, control1: controlA, control2: controlB)
 
             context.stroke(path, with: .color(edge.kind.tint.opacity(0.72)), lineWidth: 2.5)
-
-            drawArrow(in: context, from: start, to: end, color: edge.kind.tint)
+            drawArrow(in: context, from: controlB, to: end, color: edge.kind.tint)
         }
+    }
+
+    private func connectionPoint(from center: CGPoint, toward target: CGPoint) -> CGPoint {
+        let vector = CGSize(width: target.x - center.x, height: target.y - center.y)
+        guard vector.width != 0 || vector.height != 0 else { return center }
+
+        let halfWidth = GraphMetrics.cardSize.width / 2
+        let halfHeight = GraphMetrics.cardSize.height / 2
+        let xScale = vector.width == 0 ? CGFloat.greatestFiniteMagnitude : halfWidth / abs(vector.width)
+        let yScale = vector.height == 0 ? CGFloat.greatestFiniteMagnitude : halfHeight / abs(vector.height)
+        let scale = min(xScale, yScale)
+
+        return CGPoint(
+            x: center.x + vector.width * scale,
+            y: center.y + vector.height * scale
+        )
     }
 
     private func drawArrow(in context: GraphicsContext, from start: CGPoint, to end: CGPoint, color: Color) {
@@ -180,18 +297,38 @@ private struct GraphCanvasView: View {
     }
 
     private func edgeLabelPosition(source: ProofNode, target: ProofNode) -> CGPoint {
-        CGPoint(
-            x: (source.position.x + target.position.x) / 2,
-            y: (source.position.y + target.position.y) / 2 - 18
+        let sourceCenter = cgPosition(for: source)
+        let targetCenter = cgPosition(for: target)
+        return CGPoint(
+            x: (sourceCenter.x + targetCenter.x) / 2,
+            y: (sourceCenter.y + targetCenter.y) / 2 - 18
         )
     }
+
+    private func centerBranch(_ proxy: ScrollViewProxy, animated: Bool = true) {
+        DispatchQueue.main.async {
+            if animated {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    proxy.scrollTo(Self.branchFocusID, anchor: .center)
+                }
+            } else {
+                proxy.scrollTo(Self.branchFocusID, anchor: .center)
+            }
+        }
+    }
+}
+
+private enum GraphMetrics {
+    static let cardSize = CGSize(width: 246, height: 154)
+    static let minimumCanvasSize = CGSize(width: 1600, height: 1050)
+    static let canvasPadding: CGFloat = 360
 }
 
 private struct EdgeLabel: View {
     let edge: ProofEdge
 
     var body: some View {
-        Text(edge.label.isEmpty ? edge.kind.title : edge.label)
+        Text(edge.label.isEmpty ? edge.kind.title : LaTeXRenderer.render(edge.label))
             .font(.caption2.weight(.semibold))
             .foregroundStyle(edge.kind.tint)
             .padding(.horizontal, 7)
@@ -207,12 +344,17 @@ private struct EdgeLabel: View {
 private struct GraphNodeCard: View {
     @EnvironmentObject private var store: ProofStore
     let node: ProofNode
-    @State private var dragStart: GraphPoint?
+    let onDragEnded: (GraphPoint) -> Void
 
-    private let cardSize = CGSize(width: 230, height: 132)
+    @State private var dragStart: GraphPoint?
+    @State private var dragOffset: CGSize = .zero
+    @State private var editingField: EditableNodeField?
+    @State private var draftTitle = ""
+    @State private var draftStatement = ""
+    @FocusState private var focusedField: EditableNodeField?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: node.kind.systemImage)
                     .foregroundStyle(node.kind.tint)
@@ -224,32 +366,50 @@ private struct GraphNodeCard: View {
 
                 Spacer()
 
-                Circle()
-                    .fill(node.status.tint)
-                    .frame(width: 8, height: 8)
+                if store.sourceURL(for: node) != nil {
+                    Button {
+                        openSourceFile()
+                    } label: {
+                        Image(systemName: "curlybraces")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Open source file")
+                }
+
+                Button {
+                    cycleProofStatus()
+                } label: {
+                    Circle()
+                        .fill(node.status.tint)
+                        .frame(width: 10, height: 10)
+                }
+                .buttonStyle(.plain)
+                .help("Cycle proof status")
             }
 
-            Text(node.title)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+            titleContent
 
-            Text(node.statement.isEmpty ? "No statement" : node.statement)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(3)
+            statementContent
 
             Spacer(minLength: 0)
 
             HStack(spacing: 6) {
-                StatusChip(text: node.status.title, color: node.status.tint)
-                if node.verification != .unchecked {
-                    StatusChip(text: node.verification.title, color: node.verification.tint)
+                StatusChip(text: node.status.title, color: node.status.tint) {
+                    cycleProofStatus()
+                }
+                StatusChip(text: node.verification.title, color: node.verification.tint) {
+                    cycleVerificationStatus()
+                }
+                if !node.subgoals.isEmpty {
+                    StatusChip(text: "\(openSubgoalCount)/\(node.subgoals.count) goals", color: openSubgoalCount == 0 ? .green : .orange) {
+                        cyclePrimarySubgoalStatus()
+                    }
                 }
             }
         }
         .padding(12)
-        .frame(width: cardSize.width, height: cardSize.height, alignment: .topLeading)
+        .frame(width: GraphMetrics.cardSize.width, height: GraphMetrics.cardSize.height, alignment: .topLeading)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
@@ -257,10 +417,18 @@ private struct GraphNodeCard: View {
         }
         .shadow(color: .black.opacity(store.selectedNodeID == node.id ? 0.14 : 0.07), radius: 10, y: 5)
         .contentShape(RoundedRectangle(cornerRadius: 8))
-        .onTapGesture {
-            store.selectedNodeID = node.id
+        .offset(dragOffset)
+        .transaction { transaction in
+            transaction.animation = nil
         }
-        .gesture(dragGesture)
+        .onTapGesture {
+            store.selectNode(id: node.id)
+        }
+        .gesture(dragGesture, including: editingField == nil ? .all : .none)
+        .onChange(of: focusedField) {
+            guard let editingField, focusedField != editingField else { return }
+            commitEditing()
+        }
         .contextMenu {
             Button(role: .destructive) {
                 store.deleteNode(id: node.id)
@@ -270,8 +438,58 @@ private struct GraphNodeCard: View {
         }
     }
 
+    @ViewBuilder
+    private var titleContent: some View {
+        if editingField == .title {
+            TextField("Title", text: $draftTitle, axis: .vertical)
+                .textFieldStyle(.plain)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(2)
+                .focused($focusedField, equals: .title)
+                .onSubmit(commitEditing)
+        } else {
+            Text(LaTeXRenderer.render(node.title))
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .onTapGesture(count: 2) {
+                    beginEditing(.title)
+                }
+                .onLongPressGesture {
+                    beginEditing(.title)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var statementContent: some View {
+        if editingField == .statement {
+            TextField("Statement", text: $draftStatement, axis: .vertical)
+                .textFieldStyle(.plain)
+                .font(.caption)
+                .lineLimit(3)
+                .focused($focusedField, equals: .statement)
+                .onSubmit(commitEditing)
+        } else {
+            Text(node.statement.isEmpty ? "No statement" : LaTeXRenderer.render(node.statement))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+                .onTapGesture(count: 2) {
+                    beginEditing(.statement)
+                }
+                .onLongPressGesture {
+                    beginEditing(.statement)
+                }
+        }
+    }
+
     private var borderColor: Color {
         store.selectedNodeID == node.id ? node.kind.tint : Color.primary.opacity(0.12)
+    }
+
+    private var openSubgoalCount: Int {
+        node.subgoals.filter { $0.status != .proven }.count
     }
 
     private var dragGesture: some Gesture {
@@ -279,34 +497,129 @@ private struct GraphNodeCard: View {
             .onChanged { value in
                 if dragStart == nil {
                     dragStart = node.position
-                    store.selectedNodeID = node.id
                 }
-                guard let dragStart else { return }
-                store.moveNode(
-                    id: node.id,
-                    to: GraphPoint(
-                        x: dragStart.x + value.translation.width,
-                        y: dragStart.y + value.translation.height
-                    )
-                )
+                dragOffset = value.translation
             }
-            .onEnded { _ in
+            .onEnded { value in
+                let start = dragStart ?? node.position
+                let finalPoint = GraphPoint(
+                    x: start.x + value.translation.width,
+                    y: start.y + value.translation.height
+                )
+                onDragEnded(finalPoint)
                 dragStart = nil
+                dragOffset = .zero
+                store.selectNode(id: node.id)
             }
     }
+
+    private func beginEditing(_ field: EditableNodeField) {
+        let currentNode = latestNode
+        draftTitle = currentNode.title
+        draftStatement = currentNode.statement
+        editingField = field
+        store.selectNode(id: node.id)
+
+        DispatchQueue.main.async {
+            focusedField = field
+        }
+    }
+
+    private func commitEditing() {
+        guard let editingField else { return }
+
+        updateLatestNode { updated in
+            switch editingField {
+            case .title:
+                let trimmed = draftTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+                updated.title = trimmed.isEmpty ? updated.title : trimmed
+            case .statement:
+                updated.statement = draftStatement
+            }
+        }
+
+        self.editingField = nil
+        focusedField = nil
+    }
+
+    private func cycleProofStatus() {
+        updateLatestNode { node in
+            node.status = node.status.nextGraphStatus
+        }
+    }
+
+    private func cycleVerificationStatus() {
+        updateLatestNode { node in
+            node.verification = node.verification.nextGraphStatus
+        }
+    }
+
+    private func cyclePrimarySubgoalStatus() {
+        updateLatestNode { node in
+            let targetIndex = node.subgoals.firstIndex { $0.status != .proven } ?? node.subgoals.indices.first
+            guard let targetIndex else { return }
+            node.subgoals[targetIndex].status = node.subgoals[targetIndex].status.nextGraphStatus
+        }
+    }
+
+    private func openSourceFile() {
+        guard let sourceURL = store.sourceURL(for: node) else { return }
+        #if os(macOS)
+        NSWorkspace.shared.open(sourceURL)
+        #endif
+    }
+
+    private var latestNode: ProofNode {
+        store.project.nodes.first { $0.id == node.id } ?? node
+    }
+
+    private func updateLatestNode(_ updates: (inout ProofNode) -> Void) {
+        var updated = latestNode
+        updates(&updated)
+        store.updateNode(updated)
+    }
+}
+
+private enum EditableNodeField: Hashable {
+    case title
+    case statement
 }
 
 private struct StatusChip: View {
     let text: String
     let color: Color
+    let action: () -> Void
 
     var body: some View {
-        Text(text)
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.12), in: Capsule())
+        Button(action: action) {
+            Text(text)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(color)
+                .lineLimit(1)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(color.opacity(0.12), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .help("Cycle status")
+    }
+}
+
+private extension ProofStatus {
+    var nextGraphStatus: ProofStatus {
+        let values = Self.allCases
+        guard let index = values.firstIndex(of: self) else { return self }
+        let next = values.index(after: index)
+        return next == values.endIndex ? values[values.startIndex] : values[next]
+    }
+}
+
+private extension VerificationStatus {
+    var nextGraphStatus: VerificationStatus {
+        let values = Self.allCases
+        guard let index = values.firstIndex(of: self) else { return self }
+        let next = values.index(after: index)
+        return next == values.endIndex ? values[values.startIndex] : values[next]
     }
 }
 
@@ -335,18 +648,10 @@ private struct GridPattern: Shape {
 
 private extension Color {
     static var appBackground: Color {
-        #if os(iOS)
-        Color(UIColor.systemBackground)
-        #else
         Color(NSColor.windowBackgroundColor)
-        #endif
     }
 
     static var appSecondaryBackground: Color {
-        #if os(iOS)
-        Color(UIColor.secondarySystemBackground)
-        #else
         Color(NSColor.controlBackgroundColor)
-        #endif
     }
 }
