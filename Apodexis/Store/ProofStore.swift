@@ -236,7 +236,7 @@ final class ProofStore: ObservableObject {
             imported = internalProject
         } else {
             imported = try JSONDecoder.proofChain
-                .decode(ProofChainImportDocument.self, from: data)
+                .decode(ApodexisImportDocument.self, from: data)
                 .makeProject()
         }
 
@@ -367,7 +367,7 @@ final class ProofStore: ObservableObject {
             let data = try JSONEncoder.proofChain.encode(project)
             try data.write(to: storageURL, options: [.atomic])
         } catch {
-            assertionFailure("Failed to persist ProofChain project: \(error)")
+            assertionFailure("Failed to persist Apodexis project: \(error)")
         }
     }
 
@@ -375,7 +375,7 @@ final class ProofStore: ObservableObject {
         let supportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first ?? FileManager.default.temporaryDirectory
         return supportDirectory
-            .appendingPathComponent("ProofChain", isDirectory: true)
+            .appendingPathComponent("Apodexis", isDirectory: true)
             .appendingPathComponent("workspace.json")
     }
 }
@@ -397,7 +397,7 @@ private extension JSONDecoder {
     }
 }
 
-private struct ProofChainImportDocument: Decodable {
+private struct ApodexisImportDocument: Decodable {
     var title: String
     var branches: [ImportBranch]?
     var nodes: [ImportNode]
@@ -420,7 +420,7 @@ private struct ProofChainImportDocument: Decodable {
 
         let branches = try branchInputs.map { input in
             guard let id = branchIDs[input.id] else {
-                throw ProofChainImportError.unknownBranch(input.id)
+                throw ApodexisImportError.unknownBranch(input.id)
             }
 
             return ProofBranch(
@@ -436,12 +436,12 @@ private struct ProofChainImportDocument: Decodable {
 
         let nodes = try nodes.enumerated().map { index, input in
             guard let id = nodeIDs[input.id] else {
-                throw ProofChainImportError.unknownNode(input.id)
+                throw ApodexisImportError.unknownNode(input.id)
             }
 
             let branchKey = input.branch ?? branchInputs.first!.id
             guard let branchID = branchIDs[branchKey] else {
-                throw ProofChainImportError.unknownBranch(branchKey)
+                throw ApodexisImportError.unknownBranch(branchKey)
             }
 
             let position = input.position ?? ImportPoint(
@@ -471,10 +471,10 @@ private struct ProofChainImportDocument: Decodable {
 
         let edges = try (edges ?? []).map { input in
             guard let sourceID = nodeIDs[input.from] else {
-                throw ProofChainImportError.unknownNode(input.from)
+                throw ApodexisImportError.unknownNode(input.from)
             }
             guard let targetID = nodeIDs[input.to] else {
-                throw ProofChainImportError.unknownNode(input.to)
+                throw ApodexisImportError.unknownNode(input.to)
             }
 
             return ProofEdge(
@@ -578,7 +578,7 @@ private struct ImportPoint: Decodable {
     var y: Double
 }
 
-private enum ProofChainImportError: LocalizedError {
+private enum ApodexisImportError: LocalizedError {
     case unknownBranch(String)
     case unknownNode(String)
     case invalidEnum(value: String, allowed: String)
@@ -606,7 +606,7 @@ private func decodeEnum<T>(_ value: String, as type: T.Type) throws -> T where T
     }
 
     let allowed = T.allCases.map(\.rawValue).joined(separator: ", ")
-    throw ProofChainImportError.invalidEnum(value: value, allowed: allowed)
+    throw ApodexisImportError.invalidEnum(value: value, allowed: allowed)
 }
 
 private func normalizeImportValue(_ value: String) -> String {

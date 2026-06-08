@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ProofChainApp: App {
+struct ApodexisApp: App {
     @StateObject private var store = ProofStore()
 
     var body: some Scene {

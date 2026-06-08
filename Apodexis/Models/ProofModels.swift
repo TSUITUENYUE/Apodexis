@@ -473,7 +473,7 @@ extension ProofProject {
         )
 
         return ProofProject(
-            title: "ProofChain Workspace",
+            title: "Apodexis Workspace",
             branches: [mainBranch, alternativeBranch],
             nodes: [definition, theorem, lemma, caseSplit, formal, fork],
             edges: [

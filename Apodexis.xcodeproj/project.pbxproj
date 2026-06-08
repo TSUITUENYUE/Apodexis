@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A00100000000000000000001 /* ProofChainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ProofChainApp.swift */; };
+		A00100000000000000000001 /* ApodexisApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ApodexisApp.swift */; };
 		A00100000000000000000002 /* ProofModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* ProofModels.swift */; };
 		A00100000000000000000003 /* ProofStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* ProofStore.swift */; };
 		A00100000000000000000004 /* FormalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000004 /* FormalAnalyzer.swift */; };
@@ -17,7 +17,7 @@
 		A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* GraphWorkspaceView.swift */; };
 		A00100000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
 		A0010000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
-		A00110000000000000000001 /* ProofChainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ProofChainApp.swift */; };
+		A00110000000000000000001 /* ApodexisApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ApodexisApp.swift */; };
 		A00110000000000000000002 /* ProofModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* ProofModels.swift */; };
 		A00110000000000000000003 /* ProofStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* ProofStore.swift */; };
 		A00110000000000000000004 /* FormalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000004 /* FormalAnalyzer.swift */; };
@@ -30,7 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A00000000000000000000001 /* ProofChainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofChainApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000001 /* ApodexisApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApodexisApp.swift; sourceTree = "<group>"; };
 		A00000000000000000000002 /* ProofModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofModels.swift; sourceTree = "<group>"; };
 		A00000000000000000000003 /* ProofStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofStore.swift; sourceTree = "<group>"; };
 		A00000000000000000000004 /* FormalAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormalAnalyzer.swift; sourceTree = "<group>"; };
@@ -40,8 +40,8 @@
 		A00000000000000000000008 /* GraphWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphWorkspaceView.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000A /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
-		A000000000000000000000F1 /* ProofChainMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProofChainMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A000000000000000000000F2 /* ProofChainiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProofChainiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A000000000000000000000F1 /* ApodexisMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApodexisMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A000000000000000000000F2 /* ApodexisIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApodexisIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,12 +53,12 @@
 		A000000000000000000000AA = {
 			isa = PBXGroup;
 			children = (
-				A000000000000000000000AB /* ProofChain */,
+				A000000000000000000000AB /* Apodexis */,
 				A000000000000000000000AC /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A000000000000000000000AB /* ProofChain */ = {
+		A000000000000000000000AB /* Apodexis */ = {
 			isa = PBXGroup;
 			children = (
 				A000000000000000000000B1 /* App */,
@@ -67,13 +67,13 @@
 				A000000000000000000000B4 /* Views */,
 				A000000000000000000000B5 /* Utilities */,
 			);
-			path = ProofChain;
+			path = Apodexis;
 			sourceTree = "<group>";
 		};
 		A000000000000000000000B1 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				A00000000000000000000001 /* ProofChainApp.swift */,
+				A00000000000000000000001 /* ApodexisApp.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -118,8 +118,8 @@
 		A000000000000000000000AC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A000000000000000000000F1 /* ProofChainMac.app */,
-				A000000000000000000000F2 /* ProofChainiOS.app */,
+				A000000000000000000000F1 /* ApodexisMac.app */,
+				A000000000000000000000F2 /* ApodexisIOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -127,9 +127,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A00300000000000000000001 /* ProofChainMac */ = {
+		A00300000000000000000001 /* ApodexisMac */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A00500000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainMac" */;
+			buildConfigurationList = A00500000000000000000001 /* Build configuration list for PBXNativeTarget "ApodexisMac" */;
 			buildPhases = (
 				A00200000000000000000002 /* Sources */,
 				A00200000000000000000001 /* Frameworks */,
@@ -139,14 +139,14 @@
 			);
 			dependencies = (
 			);
-			name = ProofChainMac;
-			productName = ProofChainMac;
-			productReference = A000000000000000000000F1 /* ProofChainMac.app */;
+			name = ApodexisMac;
+			productName = ApodexisMac;
+			productReference = A000000000000000000000F1 /* ApodexisMac.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A00310000000000000000001 /* ProofChainiOS */ = {
+		A00310000000000000000001 /* ApodexisIOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainiOS" */;
+			buildConfigurationList = A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ApodexisIOS" */;
 			buildPhases = (
 				A00210000000000000000002 /* Sources */,
 				A00210000000000000000001 /* Frameworks */,
@@ -156,9 +156,9 @@
 			);
 			dependencies = (
 			);
-			name = ProofChainiOS;
-			productName = ProofChainiOS;
-			productReference = A000000000000000000000F2 /* ProofChainiOS.app */;
+			name = ApodexisIOS;
+			productName = ApodexisIOS;
+			productReference = A000000000000000000000F2 /* ApodexisIOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -179,7 +179,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A00520000000000000000001 /* Build configuration list for PBXProject "ProofChain" */;
+			buildConfigurationList = A00520000000000000000001 /* Build configuration list for PBXProject "Apodexis" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -192,8 +192,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A00300000000000000000001 /* ProofChainMac */,
-				A00310000000000000000001 /* ProofChainiOS */,
+				A00300000000000000000001 /* ApodexisMac */,
+				A00310000000000000000001 /* ApodexisIOS */,
 			);
 		};
 /* End PBXProject section */
@@ -208,7 +208,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00100000000000000000001 /* ProofChainApp.swift in Sources */,
+				A00100000000000000000001 /* ApodexisApp.swift in Sources */,
 				A00100000000000000000002 /* ProofModels.swift in Sources */,
 				A00100000000000000000003 /* ProofStore.swift in Sources */,
 				A00100000000000000000004 /* FormalAnalyzer.swift in Sources */,
@@ -225,7 +225,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00110000000000000000001 /* ProofChainApp.swift in Sources */,
+				A00110000000000000000001 /* ApodexisApp.swift in Sources */,
 				A00110000000000000000002 /* ProofModels.swift in Sources */,
 				A00110000000000000000003 /* ProofStore.swift in Sources */,
 				A00110000000000000000004 /* FormalAnalyzer.swift in Sources */,
@@ -364,7 +364,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_CFBundleDisplayName = Apodexis;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -372,7 +372,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.mac;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.Apodexis.mac;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
@@ -389,7 +389,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_CFBundleDisplayName = Apodexis;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -397,7 +397,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.mac;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.Apodexis.mac;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
@@ -413,7 +413,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_CFBundleDisplayName = Apodexis;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -422,7 +422,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.Apodexis.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -440,7 +440,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_CFBundleDisplayName = Apodexis;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -449,7 +449,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.Apodexis.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -462,7 +462,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A00500000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainMac" */ = {
+		A00500000000000000000001 /* Build configuration list for PBXNativeTarget "ApodexisMac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A00610000000000000000001 /* Debug */,
@@ -471,7 +471,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainiOS" */ = {
+		A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ApodexisIOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A00620000000000000000001 /* Debug */,
@@ -480,7 +480,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		A00520000000000000000001 /* Build configuration list for PBXProject "ProofChain" */ = {
+		A00520000000000000000001 /* Build configuration list for PBXProject "Apodexis" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A00600000000000000000001 /* Debug */,

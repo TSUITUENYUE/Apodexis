@@ -10,7 +10,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             SidebarView()
-                .navigationTitle("ProofChain")
+                .navigationTitle("Apodexis")
         } content: {
             GraphWorkspaceView()
                 .navigationTitle(store.selectedBranch?.name ?? store.project.title)
