@@ -1,0 +1,495 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00100000000000000000001 /* ProofChainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ProofChainApp.swift */; };
+		A00100000000000000000002 /* ProofModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* ProofModels.swift */; };
+		A00100000000000000000003 /* ProofStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* ProofStore.swift */; };
+		A00100000000000000000004 /* FormalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000004 /* FormalAnalyzer.swift */; };
+		A00100000000000000000005 /* PlatformClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000005 /* PlatformClipboard.swift */; };
+		A00100000000000000000006 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000006 /* ContentView.swift */; };
+		A00100000000000000000007 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* SidebarView.swift */; };
+		A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* GraphWorkspaceView.swift */; };
+		A00100000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
+		A0010000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
+		A00110000000000000000001 /* ProofChainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* ProofChainApp.swift */; };
+		A00110000000000000000002 /* ProofModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* ProofModels.swift */; };
+		A00110000000000000000003 /* ProofStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* ProofStore.swift */; };
+		A00110000000000000000004 /* FormalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000004 /* FormalAnalyzer.swift */; };
+		A00110000000000000000005 /* PlatformClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000005 /* PlatformClipboard.swift */; };
+		A00110000000000000000006 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000006 /* ContentView.swift */; };
+		A00110000000000000000007 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* SidebarView.swift */; };
+		A00110000000000000000008 /* GraphWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* GraphWorkspaceView.swift */; };
+		A00110000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
+		A0011000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000001 /* ProofChainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofChainApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000002 /* ProofModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofModels.swift; sourceTree = "<group>"; };
+		A00000000000000000000003 /* ProofStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofStore.swift; sourceTree = "<group>"; };
+		A00000000000000000000004 /* FormalAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormalAnalyzer.swift; sourceTree = "<group>"; };
+		A00000000000000000000005 /* PlatformClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformClipboard.swift; sourceTree = "<group>"; };
+		A00000000000000000000006 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A00000000000000000000007 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		A00000000000000000000008 /* GraphWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphWorkspaceView.swift; sourceTree = "<group>"; };
+		A00000000000000000000009 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
+		A0000000000000000000000A /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
+		A000000000000000000000F1 /* ProofChainMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProofChainMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A000000000000000000000F2 /* ProofChainiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProofChainiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00200000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00210000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A000000000000000000000AA = {
+			isa = PBXGroup;
+			children = (
+				A000000000000000000000AB /* ProofChain */,
+				A000000000000000000000AC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A000000000000000000000AB /* ProofChain */ = {
+			isa = PBXGroup;
+			children = (
+				A000000000000000000000B1 /* App */,
+				A000000000000000000000B2 /* Models */,
+				A000000000000000000000B3 /* Store */,
+				A000000000000000000000B4 /* Views */,
+				A000000000000000000000B5 /* Utilities */,
+			);
+			path = ProofChain;
+			sourceTree = "<group>";
+		};
+		A000000000000000000000B1 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000001 /* ProofChainApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A000000000000000000000B2 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000002 /* ProofModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A000000000000000000000B3 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000003 /* ProofStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		A000000000000000000000B4 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000006 /* ContentView.swift */,
+				A00000000000000000000007 /* SidebarView.swift */,
+				A00000000000000000000008 /* GraphWorkspaceView.swift */,
+				A00000000000000000000009 /* InspectorView.swift */,
+				A0000000000000000000000A /* ExportView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A000000000000000000000B5 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000004 /* FormalAnalyzer.swift */,
+				A00000000000000000000005 /* PlatformClipboard.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		A000000000000000000000AC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A000000000000000000000F1 /* ProofChainMac.app */,
+				A000000000000000000000F2 /* ProofChainiOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00300000000000000000001 /* ProofChainMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00500000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainMac" */;
+			buildPhases = (
+				A00200000000000000000002 /* Sources */,
+				A00200000000000000000001 /* Frameworks */,
+				A00200000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProofChainMac;
+			productName = ProofChainMac;
+			productReference = A000000000000000000000F1 /* ProofChainMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A00310000000000000000001 /* ProofChainiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainiOS" */;
+			buildPhases = (
+				A00210000000000000000002 /* Sources */,
+				A00210000000000000000001 /* Frameworks */,
+				A00210000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProofChainiOS;
+			productName = ProofChainiOS;
+			productReference = A000000000000000000000F2 /* ProofChainiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00400000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					A00300000000000000000001 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					A00310000000000000000001 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+				};
+			};
+			buildConfigurationList = A00520000000000000000001 /* Build configuration list for PBXProject "ProofChain" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A000000000000000000000AA;
+			productRefGroup = A000000000000000000000AC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00300000000000000000001 /* ProofChainMac */,
+				A00310000000000000000001 /* ProofChainiOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00200000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00210000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00200000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100000000000000000001 /* ProofChainApp.swift in Sources */,
+				A00100000000000000000002 /* ProofModels.swift in Sources */,
+				A00100000000000000000003 /* ProofStore.swift in Sources */,
+				A00100000000000000000004 /* FormalAnalyzer.swift in Sources */,
+				A00100000000000000000005 /* PlatformClipboard.swift in Sources */,
+				A00100000000000000000006 /* ContentView.swift in Sources */,
+				A00100000000000000000007 /* SidebarView.swift in Sources */,
+				A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */,
+				A00100000000000000000009 /* InspectorView.swift in Sources */,
+				A0010000000000000000000A /* ExportView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00210000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00110000000000000000001 /* ProofChainApp.swift in Sources */,
+				A00110000000000000000002 /* ProofModels.swift in Sources */,
+				A00110000000000000000003 /* ProofStore.swift in Sources */,
+				A00110000000000000000004 /* FormalAnalyzer.swift in Sources */,
+				A00110000000000000000005 /* PlatformClipboard.swift in Sources */,
+				A00110000000000000000006 /* ContentView.swift in Sources */,
+				A00110000000000000000007 /* SidebarView.swift in Sources */,
+				A00110000000000000000008 /* GraphWorkspaceView.swift in Sources */,
+				A00110000000000000000009 /* InspectorView.swift in Sources */,
+				A0011000000000000000000A /* ExportView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00600000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = auto;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A00600000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = auto;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A00610000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A00610000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.mac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A00620000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A00620000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ProofChain;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.ProofChain.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00500000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00610000000000000000001 /* Debug */,
+				A00610000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A00510000000000000000001 /* Build configuration list for PBXNativeTarget "ProofChainiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00620000000000000000001 /* Debug */,
+				A00620000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A00520000000000000000001 /* Build configuration list for PBXProject "ProofChain" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00600000000000000000001 /* Debug */,
+				A00600000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00400000000000000000001 /* Project object */;
+}

@@ -1,0 +1,192 @@
+{
+  "title": "My Proof Project",
+  "branches": [
+    {
+      "id": "main",
+      "name": "Main proof",
+      "summary": "Primary proof route.",
+      "status": "active",
+      "color": "blue"
+    },
+    {
+      "id": "strategy-a",
+      "name": "Strategy A fork",
+      "summary": "Alternative route starting from the main theorem.",
+      "status": "active",
+      "color": "pink",
+      "parent": "main",
+      "forkedFrom": "main-theorem"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "def-finite-sat",
+      "branch": "main",
+      "type": "definition",
+      "title": "Finite satisfiability",
+      "statement": "A set Γ of formulas is finitely satisfiable if every finite Δ ⊆ Γ has a model.",
+      "context": "Language L is fixed. Γ is a set of first-order formulas.",
+      "proofSketch": "",
+      "formalDialect": "latex",
+      "formalCode": "",
+      "status": "proven",
+      "verification": "unchecked",
+      "position": {
+        "x": 220,
+        "y": 180
+      },
+      "assumptions": [
+        "L is first-order",
+        "Γ is a set of L-formulas"
+      ],
+      "subgoals": [],
+      "symbols": [
+        {
+          "symbol": "Γ",
+          "meaning": "Set of formulas",
+          "scope": "Global"
+        },
+        {
+          "symbol": "Δ",
+          "meaning": "Finite subset of Γ",
+          "scope": "Definition"
+        }
+      ],
+      "tags": [
+        "logic",
+        "definition"
+      ]
+    },
+    {
+      "id": "main-theorem",
+      "branch": "main",
+      "type": "theorem",
+      "title": "Compactness transfer theorem",
+      "statement": "If Γ is finitely satisfiable, then Γ is satisfiable.",
+      "context": "Work in a first-order language L.",
+      "proofSketch": "Use finite satisfiability to build compatible finite models, then pass to a global model.",
+      "formalDialect": "lean",
+      "formalCode": "theorem compactness_transfer\n  (Γ : Set Formula)\n  (h : finitely_satisfiable Γ) :\n  satisfiable Γ := by\n  sorry",
+      "status": "inProgress",
+      "verification": "partial",
+      "position": {
+        "x": 650,
+        "y": 180
+      },
+      "assumptions": [
+        "Finite satisfiability of Γ"
+      ],
+      "subgoals": [
+        {
+          "title": "Build the limiting model",
+          "detail": "Use an ultraproduct or a syntactic Henkin construction.",
+          "status": "open"
+        },
+        {
+          "title": "Show every φ ∈ Γ holds",
+          "detail": "Track finite satisfaction through the construction.",
+          "status": "open"
+        }
+      ],
+      "symbols": [
+        {
+          "symbol": "h",
+          "meaning": "Proof that Γ is finitely satisfiable",
+          "scope": "Lean block"
+        }
+      ],
+      "tags": [
+        "model-theory",
+        "compactness"
+      ]
+    },
+    {
+      "id": "finite-model-lemma",
+      "branch": "main",
+      "type": "lemma",
+      "title": "Finite model compatibility",
+      "statement": "For any finite Δ ⊆ Γ, there exists a model MΔ satisfying every formula in Δ.",
+      "context": "Direct unpacking of finite satisfiability.",
+      "proofSketch": "Apply the definition of finite satisfiability to Δ.",
+      "formalDialect": "latex",
+      "formalCode": "",
+      "status": "needsReview",
+      "verification": "unchecked",
+      "position": {
+        "x": 450,
+        "y": 420
+      },
+      "assumptions": [
+        "Δ ⊆ Γ",
+        "Δ is finite"
+      ],
+      "subgoals": [
+        {
+          "title": "Check notation scope",
+          "detail": "Make sure MΔ is not used outside the finite context.",
+          "status": "needsReview"
+        }
+      ],
+      "symbols": [
+        {
+          "symbol": "MΔ",
+          "meaning": "A model satisfying Δ",
+          "scope": "Lemma"
+        }
+      ],
+      "tags": [
+        "lemma"
+      ]
+    },
+    {
+      "id": "compactness-reduction",
+      "branch": "strategy-a",
+      "type": "reduction",
+      "title": "Reduce to library compactness",
+      "statement": "Try proving the target theorem by specializing a known compactness theorem.",
+      "context": "This may be circular depending on the theorem budget.",
+      "proofSketch": "If the library theorem has the exact statement, specialize it to Γ.",
+      "formalDialect": "lean",
+      "formalCode": "",
+      "status": "blocked",
+      "verification": "unchecked",
+      "position": {
+        "x": 690,
+        "y": 680
+      },
+      "assumptions": [
+        "A library compactness theorem is available"
+      ],
+      "subgoals": [
+        {
+          "title": "Check circularity",
+          "detail": "Verify whether the imported theorem is stronger than the target.",
+          "status": "blocked"
+        }
+      ],
+      "symbols": [],
+      "tags": [
+        "fork",
+        "reduction"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "def-finite-sat",
+      "to": "finite-model-lemma",
+      "type": "uses"
+    },
+    {
+      "from": "finite-model-lemma",
+      "to": "main-theorem",
+      "type": "implies"
+    },
+    {
+      "from": "main-theorem",
+      "to": "compactness-reduction",
+      "type": "forksFrom",
+      "label": "alternative route"
+    }
+  ]
+}
