@@ -4,7 +4,7 @@ Apodexis is a SwiftUI app for organizing long mathematical and scientific proof 
 
 ## Targets
 
-- `ApodexisMac`: native macOS app
+- `Apodexis`: native macOS app
 
 ## Implemented MVP
 
@@ -61,5 +61,5 @@ Important enum values:
 ## Build
 
 ```sh
-xcodebuild -project Apodexis.xcodeproj -scheme ApodexisMac -configuration Debug -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project Apodexis.xcodeproj -scheme Apodexis -configuration Debug -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
 ```
