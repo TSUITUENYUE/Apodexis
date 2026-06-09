@@ -60,6 +60,26 @@ struct ContentView: View {
                 .disabled(store.selectedNode == nil || !store.hasOpenProject)
 
                 Button {
+                    store.toggleEdgeCreation()
+                } label: {
+                    Label("Add Line", systemImage: store.edgeCreationMode ? "link.badge.plus" : "link")
+                }
+                .disabled(!store.hasOpenProject)
+
+                Menu {
+                    ForEach(EdgeKind.allCases) { kind in
+                        Button {
+                            store.edgeDraftKind = kind
+                        } label: {
+                            Label(kind.title, systemImage: kind == store.edgeDraftKind ? "checkmark" : "arrow.right")
+                        }
+                    }
+                } label: {
+                    Label(store.edgeDraftKind.title, systemImage: "line.diagonal")
+                }
+                .disabled(!store.hasOpenProject)
+
+                Button {
                     store.autoLayoutSelectedBranch()
                 } label: {
                     Label("Auto Layout", systemImage: "rectangle.connected.to.line.below")

@@ -339,8 +339,20 @@ private struct RelationRow: View {
                 .foregroundStyle(edge.kind.tint)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(LaTeXRenderer.render(relationTitle))
-                    .font(.caption.weight(.semibold))
+                Menu {
+                    ForEach(EdgeKind.allCases) { kind in
+                        Button {
+                            store.updateEdgeKind(id: edge.id, kind: kind)
+                        } label: {
+                            Label(kind.title, systemImage: kind == edge.kind ? "checkmark" : "arrow.right")
+                        }
+                    }
+                } label: {
+                    Text(LaTeXRenderer.render(relationTitle))
+                        .font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+
                 if !edge.label.isEmpty {
                     Text(LaTeXRenderer.render(edge.label))
                         .font(.caption2)

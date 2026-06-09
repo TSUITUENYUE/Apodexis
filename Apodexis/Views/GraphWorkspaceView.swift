@@ -325,19 +325,39 @@ private enum GraphMetrics {
 }
 
 private struct EdgeLabel: View {
+    @EnvironmentObject private var store: ProofStore
     let edge: ProofEdge
 
     var body: some View {
-        Text(edge.label.isEmpty ? edge.kind.title : LaTeXRenderer.render(edge.label))
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(edge.kind.tint)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
-            .background(.regularMaterial, in: Capsule())
-            .overlay {
-                Capsule()
-                    .stroke(edge.kind.tint.opacity(0.25), lineWidth: 1)
+        Menu {
+            ForEach(EdgeKind.allCases) { kind in
+                Button {
+                    store.updateEdgeKind(id: edge.id, kind: kind)
+                } label: {
+                    Label(kind.title, systemImage: kind == edge.kind ? "checkmark" : "arrow.right")
+                }
             }
+        } label: {
+            Text(labelText)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(edge.kind.tint)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(.regularMaterial, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(edge.kind.tint.opacity(0.25), lineWidth: 1)
+                }
+        }
+        .buttonStyle(.plain)
+        .help("Change relation")
+    }
+
+    private var labelText: String {
+        if edge.label.isEmpty {
+            return edge.kind.title
+        }
+        return "\(edge.kind.title) · \(LaTeXRenderer.render(edge.label))"
     }
 }
 
@@ -377,15 +397,9 @@ private struct GraphNodeCard: View {
                     .help("Open source file")
                 }
 
-                Button {
-                    cycleProofStatus()
-                } label: {
-                    Circle()
-                        .fill(node.status.tint)
-                        .frame(width: 10, height: 10)
+                ProofStatusDotMenu(status: node.status) { status in
+                    setProofStatus(status)
                 }
-                .buttonStyle(.plain)
-                .help("Cycle proof status")
             }
 
             titleContent
@@ -395,15 +409,19 @@ private struct GraphNodeCard: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 6) {
-                StatusChip(text: node.status.title, color: node.status.tint) {
-                    cycleProofStatus()
+                ProofStatusMenu(status: node.status) { status in
+                    setProofStatus(status)
                 }
-                StatusChip(text: node.verification.title, color: node.verification.tint) {
-                    cycleVerificationStatus()
+                VerificationStatusMenu(status: node.verification) { status in
+                    setVerificationStatus(status)
                 }
                 if !node.subgoals.isEmpty {
-                    StatusChip(text: "\(openSubgoalCount)/\(node.subgoals.count) goals", color: openSubgoalCount == 0 ? .green : .orange) {
-                        cyclePrimarySubgoalStatus()
+                    SubgoalStatusMenu(
+                        text: "\(openSubgoalCount)/\(node.subgoals.count) goals",
+                        color: openSubgoalCount == 0 ? .green : .orange,
+                        selectedStatus: primarySubgoalStatus
+                    ) { status in
+                        setPrimarySubgoalStatus(status)
                     }
                 }
             }
@@ -413,7 +431,7 @@ private struct GraphNodeCard: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(borderColor, lineWidth: store.selectedNodeID == node.id ? 2.5 : 1)
+                .stroke(borderColor, lineWidth: borderWidth)
         }
         .shadow(color: .black.opacity(store.selectedNodeID == node.id ? 0.14 : 0.07), radius: 10, y: 5)
         .contentShape(RoundedRectangle(cornerRadius: 8))
@@ -422,9 +440,13 @@ private struct GraphNodeCard: View {
             transaction.animation = nil
         }
         .onTapGesture {
-            store.selectNode(id: node.id)
+            if store.edgeCreationMode {
+                store.handleEdgeCreationClick(on: node.id)
+            } else {
+                store.selectNode(id: node.id)
+            }
         }
-        .gesture(dragGesture, including: editingField == nil ? .all : .none)
+        .gesture(dragGesture, including: editingField == nil && !store.edgeCreationMode ? .all : .none)
         .onChange(of: focusedField) {
             guard let editingField, focusedField != editingField else { return }
             commitEditing()
@@ -485,11 +507,25 @@ private struct GraphNodeCard: View {
     }
 
     private var borderColor: Color {
-        store.selectedNodeID == node.id ? node.kind.tint : Color.primary.opacity(0.12)
+        if store.edgeCreationSourceID == node.id {
+            return .accentColor
+        }
+        return store.selectedNodeID == node.id ? node.kind.tint : Color.primary.opacity(0.12)
+    }
+
+    private var borderWidth: CGFloat {
+        if store.edgeCreationSourceID == node.id {
+            return 3
+        }
+        return store.selectedNodeID == node.id ? 2.5 : 1
     }
 
     private var openSubgoalCount: Int {
         node.subgoals.filter { $0.status != .proven }.count
+    }
+
+    private var primarySubgoalStatus: ProofStatus {
+        node.subgoals.first { $0.status != .proven }?.status ?? node.subgoals.first?.status ?? .proven
     }
 
     private var dragGesture: some Gesture {
@@ -542,23 +578,23 @@ private struct GraphNodeCard: View {
         focusedField = nil
     }
 
-    private func cycleProofStatus() {
+    private func setProofStatus(_ status: ProofStatus) {
         updateLatestNode { node in
-            node.status = node.status.nextGraphStatus
+            node.status = status
         }
     }
 
-    private func cycleVerificationStatus() {
+    private func setVerificationStatus(_ status: VerificationStatus) {
         updateLatestNode { node in
-            node.verification = node.verification.nextGraphStatus
+            node.verification = status
         }
     }
 
-    private func cyclePrimarySubgoalStatus() {
+    private func setPrimarySubgoalStatus(_ status: ProofStatus) {
         updateLatestNode { node in
             let targetIndex = node.subgoals.firstIndex { $0.status != .proven } ?? node.subgoals.indices.first
             guard let targetIndex else { return }
-            node.subgoals[targetIndex].status = node.subgoals[targetIndex].status.nextGraphStatus
+            node.subgoals[targetIndex].status = status
         }
     }
 
@@ -585,41 +621,106 @@ private enum EditableNodeField: Hashable {
     case statement
 }
 
-private struct StatusChip: View {
-    let text: String
-    let color: Color
-    let action: () -> Void
+private struct ProofStatusDotMenu: View {
+    let status: ProofStatus
+    let onChange: (ProofStatus) -> Void
 
     var body: some View {
-        Button(action: action) {
-            Text(text)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(color)
-                .lineLimit(1)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 4)
-                .background(color.opacity(0.12), in: Capsule())
+        Menu {
+            ForEach(ProofStatus.allCases) { option in
+                Button {
+                    onChange(option)
+                } label: {
+                    Label(option.title, systemImage: option == status ? "checkmark" : "circle")
+                }
+            }
+        } label: {
+            Circle()
+                .fill(status.tint)
+                .frame(width: 10, height: 10)
         }
         .buttonStyle(.plain)
-        .help("Cycle status")
+        .help("Proof status")
     }
 }
 
-private extension ProofStatus {
-    var nextGraphStatus: ProofStatus {
-        let values = Self.allCases
-        guard let index = values.firstIndex(of: self) else { return self }
-        let next = values.index(after: index)
-        return next == values.endIndex ? values[values.startIndex] : values[next]
+private struct ProofStatusMenu: View {
+    let status: ProofStatus
+    let onChange: (ProofStatus) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(ProofStatus.allCases) { option in
+                Button {
+                    onChange(option)
+                } label: {
+                    Label(option.title, systemImage: option == status ? "checkmark" : "circle")
+                }
+            }
+        } label: {
+            StatusPill(text: status.title, color: status.tint)
+        }
+        .buttonStyle(.plain)
+        .help("Proof status")
     }
 }
 
-private extension VerificationStatus {
-    var nextGraphStatus: VerificationStatus {
-        let values = Self.allCases
-        guard let index = values.firstIndex(of: self) else { return self }
-        let next = values.index(after: index)
-        return next == values.endIndex ? values[values.startIndex] : values[next]
+private struct VerificationStatusMenu: View {
+    let status: VerificationStatus
+    let onChange: (VerificationStatus) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(VerificationStatus.allCases) { option in
+                Button {
+                    onChange(option)
+                } label: {
+                    Label(option.title, systemImage: option == status ? "checkmark" : "circle")
+                }
+            }
+        } label: {
+            StatusPill(text: status.title, color: status.tint)
+        }
+        .buttonStyle(.plain)
+        .help("Formal status")
+    }
+}
+
+private struct SubgoalStatusMenu: View {
+    let text: String
+    let color: Color
+    let selectedStatus: ProofStatus
+    let onChange: (ProofStatus) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(ProofStatus.allCases) { option in
+                Button {
+                    onChange(option)
+                } label: {
+                    Label(option.title, systemImage: option == selectedStatus ? "checkmark" : "circle")
+                }
+            }
+        } label: {
+            StatusPill(text: text, color: color)
+        }
+        .buttonStyle(.plain)
+        .help("Primary subgoal status")
+    }
+}
+
+private struct StatusPill: View {
+    let text: String
+    let color: Color
+
+    var body: some View {
+        Text(text)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(color)
+            .lineLimit(1)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
+            .background(color.opacity(0.12), in: Capsule())
     }
 }
 

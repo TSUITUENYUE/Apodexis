@@ -11,6 +11,9 @@ final class ProofStore: ObservableObject {
     @Published var selectedBranchID: UUID?
     @Published var selectedNodeID: UUID?
     @Published var layoutRevision = 0
+    @Published var edgeCreationMode = false
+    @Published var edgeCreationSourceID: UUID?
+    @Published var edgeDraftKind: EdgeKind = .uses
 
     private var projectIndex = ProjectIndex()
     private let appDirectory: URL
@@ -97,6 +100,7 @@ final class ProofStore: ObservableObject {
         activeProjectID = nil
         selectedBranchID = nil
         selectedNodeID = nil
+        cancelEdgeCreation()
         activeProjectDirectoryURL = nil
         activeGraphFileName = Self.defaultGraphFileName
         projectFiles = []
@@ -163,6 +167,35 @@ final class ProofStore: ObservableObject {
         guard hasOpenProject, let node = project.nodes.first(where: { $0.id == id }) else { return }
         selectedBranchID = node.branchID
         selectedNodeID = node.id
+    }
+
+    func toggleEdgeCreation() {
+        guard hasOpenProject else { return }
+        if edgeCreationMode {
+            cancelEdgeCreation()
+        } else {
+            edgeCreationMode = true
+            edgeCreationSourceID = nil
+        }
+    }
+
+    func cancelEdgeCreation() {
+        edgeCreationMode = false
+        edgeCreationSourceID = nil
+    }
+
+    func handleEdgeCreationClick(on nodeID: UUID) {
+        guard hasOpenProject, edgeCreationMode else { return }
+        guard project.nodes.contains(where: { $0.id == nodeID }) else { return }
+
+        if let sourceID = edgeCreationSourceID {
+            guard sourceID != nodeID else { return }
+            addEdge(from: sourceID, to: nodeID, kind: edgeDraftKind)
+            cancelEdgeCreation()
+        } else {
+            edgeCreationSourceID = nodeID
+            selectNode(id: nodeID)
+        }
     }
 
     func addNode(kind: NodeKind = .claim) {
@@ -249,6 +282,14 @@ final class ProofStore: ObservableObject {
         guard hasOpenProject else { return }
         mutate {
             project.edges.removeAll { $0.id == id }
+        }
+    }
+
+    func updateEdgeKind(id: UUID, kind: EdgeKind) {
+        guard hasOpenProject else { return }
+        mutate {
+            guard let index = project.edges.firstIndex(where: { $0.id == id }) else { return }
+            project.edges[index].kind = kind
         }
     }
 
