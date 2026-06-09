@@ -10,6 +10,14 @@ Apodexis is a SwiftUI app for organizing long mathematical and scientific proof 
 
 - `Apodexis`: native macOS app
 
+## Download
+
+Download the latest macOS DMG from [GitHub Releases](https://github.com/TSUITUENYUE/Apodexis/releases/latest).
+
+Open the DMG, then drag `Apodexis.app` into `Applications`.
+
+Current release builds are ad-hoc signed but not notarized. On first launch, macOS may require right-clicking `Apodexis.app` and choosing `Open`.
+
 ## Implemented MVP
 
 - Typed proof nodes: theorem, conjecture, definition, assumption, lemma, claim, proposal, strategy, conclusion, goal, reduction, case split, induction step, construction, counterexample, failed attempt, formal code.
@@ -67,3 +75,24 @@ Important enum values:
 ```sh
 xcodebuild -project Apodexis.xcodeproj -scheme Apodexis -configuration Debug -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
 ```
+
+## Package
+
+Create a local macOS DMG installer:
+
+```sh
+Scripts/package_macos.sh
+```
+
+The output is written to `dist/`.
+
+## Release
+
+GitHub Actions builds and publishes the DMG when a version tag is pushed:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow uploads the generated DMG and SHA-256 checksum to the matching GitHub Release.

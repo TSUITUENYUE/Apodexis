@@ -1,0 +1,51 @@
+name: Release macOS DMG
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-dmg:
+    name: Build macOS installer
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build DMG
+        run: Scripts/package_macos.sh
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Apodexis-macOS-dmg
+          path: |
+            dist/*.dmg
+            dist/*.sha256
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          title="Apodexis ${TAG_NAME#v}"
+          notes="macOS DMG installer for Apodexis. This build is ad-hoc signed but not notarized."
+
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" dist/*.dmg dist/*.sha256 --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG_NAME" dist/*.dmg dist/*.sha256 \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$title" \
+              --notes "$notes"
+          fi
