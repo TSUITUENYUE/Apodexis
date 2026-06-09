@@ -2,6 +2,10 @@
 
 Apodexis is a SwiftUI app for organizing long mathematical and scientific proof chains as typed dependency graphs rather than generic mind maps.
 
+## Preview
+
+![Apodexis proof graph workspace](Docs/apodexis-screenshot.png)
+
 ## Targets
 
 - `Apodexis`: native macOS app
