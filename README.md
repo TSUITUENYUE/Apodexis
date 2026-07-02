@@ -16,7 +16,7 @@ Download the latest macOS DMG from [GitHub Releases](https://github.com/TSUITUEN
 
 Open the DMG, then drag `Apodexis.app` into `Applications`.
 
-Current release builds are ad-hoc signed but not notarized. On first launch, macOS may require right-clicking `Apodexis.app` and choosing `Open`.
+Release DMGs are intended to be Developer ID signed and notarized by Apple. If macOS says it cannot verify that Apodexis is free of malware, that DMG was built without notarization. Download a newer notarized release, or build from source locally.
 
 ## Implemented MVP
 
@@ -70,6 +70,32 @@ Important enum values:
 - `formalDialect`: `latex`, `lean`, `coq`, `isabelle`, `pseudocode`, `swift`, `python`
 - `verification`: `unchecked`, `checked`, `partial`, `checking`, `verified`, `failed`
 
+## AI-native workflow
+
+Building a large graph by hand is slow. The faster path is to let an AI agent
+convert a proof you already have — LaTeX, a paper, rough notes, even a photo of
+handwritten work — into an Apodexis graph. There are three ways to do it:
+
+1. **In-app assistant** — the **Assistant** button (⌘⇧I) opens a chat panel inside
+   Apodexis. Paste LaTeX or describe a proof and it builds/edits the open graph
+   live via Claude tool calls; every AI edit is one undo step (⌘Z). Add an Anthropic
+   API key once (stored in the macOS Keychain).
+2. **MCP server** — [integrations/mcp/](integrations/mcp/) lets Claude Desktop/Code
+   build graphs into project folders through MCP tools.
+3. **Skill + file** — any file-writing agent produces an `apodexis.json` you open.
+
+Because a project is just a folder with an `apodexis.json`, and the import format
+above is a stable contract, any of these can produce a graph and you open it. The
+bundled skill teaches an agent how:
+
+- **Skill:** [skills/apodexis-proof-graph/SKILL.md](skills/apodexis-proof-graph/SKILL.md) — decomposition methodology (which node/edge types to use), the output cheat-sheet, and a mandatory validation step.
+- **Contract:** [skills/apodexis-proof-graph/reference/format-spec.md](skills/apodexis-proof-graph/reference/format-spec.md) — every field and enum value.
+- **Validator:** `python3 skills/apodexis-proof-graph/scripts/validate.py apodexis.json` — checks a file will import cleanly before you open it.
+- **Example:** [skills/apodexis-proof-graph/examples/sqrt2-irrational/](skills/apodexis-proof-graph/examples/sqrt2-irrational/) — a validated graph of the classic √2 proof. Open the folder in Apodexis to see it.
+
+Agent-authored graphs omit hand-placed coordinates, and Apodexis **auto-arranges**
+any positionless graph when it opens. See [Docs/ai-native-workflow.md](Docs/ai-native-workflow.md) for the end-to-end flow.
+
 ## Build
 
 ```sh
@@ -86,9 +112,11 @@ Scripts/package_macos.sh
 
 The output is written to `dist/`.
 
+Local packages are ad-hoc signed by default. They are useful for testing, but downloaded copies will trigger Gatekeeper because they are not notarized.
+
 ## Release
 
-GitHub Actions builds and publishes the DMG when a version tag is pushed:
+GitHub Actions builds and publishes a notarized DMG when a version tag is pushed:
 
 ```sh
 git tag v0.1.0
@@ -96,3 +124,18 @@ git push origin v0.1.0
 ```
 
 The workflow uploads the generated DMG and SHA-256 checksum to the matching GitHub Release.
+
+Tagged releases require these GitHub repository secrets:
+
+- `APPLE_CERTIFICATE_BASE64`: base64-encoded exported `.p12` Developer ID Application certificate.
+- `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12` file.
+- `KEYCHAIN_PASSWORD`: temporary CI keychain password.
+- `APPLE_ID`: Apple ID email used for notarization.
+- `APPLE_TEAM_ID`: Apple Developer Team ID.
+- `APPLE_APP_SPECIFIC_PASSWORD`: app-specific password for notarization.
+
+Create the certificate secret with:
+
+```sh
+base64 -i DeveloperIDApplication.p12 | pbcopy
+```

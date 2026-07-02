@@ -21,8 +21,78 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Import Developer ID certificate
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          if [[ -z "${APPLE_CERTIFICATE_BASE64:-}" ]]; then
+            echo "No Developer ID certificate configured. Manual runs will build an ad-hoc test DMG."
+            exit 0
+          fi
+
+          if [[ -z "${APPLE_CERTIFICATE_PASSWORD:-}" || -z "${KEYCHAIN_PASSWORD:-}" ]]; then
+            echo "APPLE_CERTIFICATE_PASSWORD and KEYCHAIN_PASSWORD are required when APPLE_CERTIFICATE_BASE64 is set." >&2
+            exit 1
+          fi
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id-application.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
       - name: Build DMG
-        run: Scripts/package_macos.sh
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          if [[ -n "${APPLE_CERTIFICATE_BASE64:-}" ]]; then
+            missing=0
+            for name in APPLE_ID APPLE_TEAM_ID APPLE_APP_SPECIFIC_PASSWORD; do
+              if [[ -z "${!name:-}" ]]; then
+                echo "$name is required for notarized releases." >&2
+                missing=1
+              fi
+            done
+            if [[ "$missing" == "1" ]]; then
+              exit 1
+            fi
+
+            identity="$(security find-identity -v -p codesigning | awk -F '"' '/Developer ID Application/ { print $2; exit }')"
+            if [[ -z "$identity" ]]; then
+              echo "No Developer ID Application identity was found in the temporary keychain." >&2
+              exit 1
+            fi
+
+            echo "Using signing identity: $identity"
+            CODESIGN_IDENTITY="$identity" NOTARIZE=1 Scripts/package_macos.sh
+          else
+            if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+              echo "Tagged releases require Developer ID signing and notarization secrets." >&2
+              exit 1
+            fi
+
+            CODESIGN_IDENTITY="-" NOTARIZE=0 Scripts/package_macos.sh
+          fi
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -39,7 +109,7 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         run: |
           title="Apodexis ${TAG_NAME#v}"
-          notes="macOS DMG installer for Apodexis. This build is ad-hoc signed but not notarized."
+          notes="macOS DMG installer for Apodexis. This build is Developer ID signed, notarized by Apple, and stapled."
 
           if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG_NAME" dist/*.dmg dist/*.sha256 --repo "$GITHUB_REPOSITORY" --clobber

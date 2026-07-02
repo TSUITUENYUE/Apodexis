@@ -1,0 +1,106 @@
+{
+  "title": "Irrationality of √2",
+  "branches": [
+    { "id": "main", "name": "Main proof", "summary": "Classic proof by contradiction.", "status": "active", "color": "blue" }
+  ],
+  "nodes": [
+    {
+      "id": "thm",
+      "type": "theorem",
+      "title": "$\\sqrt{2}$ is irrational",
+      "statement": "$\\sqrt{2} \\notin \\mathbb{Q}$.",
+      "context": "Work over the rationals $\\mathbb{Q}$.",
+      "status": "proven",
+      "verification": "unchecked",
+      "sourceFile": "sqrt2.tex",
+      "sourceLine": 4,
+      "tags": ["number-theory"]
+    },
+    {
+      "id": "strategy",
+      "type": "strategy",
+      "title": "Proof by contradiction",
+      "statement": "Assume $\\sqrt{2}$ is rational, then derive a contradiction.",
+      "status": "proven"
+    },
+    {
+      "id": "assume",
+      "type": "assumption",
+      "title": "Assume $\\sqrt{2} = p/q$ in lowest terms",
+      "statement": "Suppose $\\sqrt{2} = p/q$ with $p, q \\in \\mathbb{Z}$, $q \\neq 0$, and $\\gcd(p, q) = 1$.",
+      "status": "proven",
+      "assumptions": ["$\\sqrt{2}$ is rational"],
+      "symbols": [
+        { "symbol": "p", "meaning": "Numerator in lowest terms", "scope": "Proof" },
+        { "symbol": "q", "meaning": "Denominator in lowest terms", "scope": "Proof" }
+      ]
+    },
+    {
+      "id": "square",
+      "type": "claim",
+      "title": "$2q^2 = p^2$",
+      "statement": "Squaring $\\sqrt{2} = p/q$ gives $2 = p^2/q^2$, hence $2q^2 = p^2$.",
+      "proofSketch": "Square both sides and clear the denominator.",
+      "status": "proven"
+    },
+    {
+      "id": "p-even",
+      "type": "claim",
+      "title": "$p$ is even",
+      "statement": "$p^2 = 2q^2$ is even, so $p$ is even; write $p = 2k$.",
+      "proofSketch": "If $p$ were odd, $p^2$ would be odd.",
+      "status": "proven",
+      "symbols": [{ "symbol": "k", "meaning": "Integer with $p = 2k$", "scope": "Proof" }]
+    },
+    {
+      "id": "q-even",
+      "type": "claim",
+      "title": "$q$ is even",
+      "statement": "Substituting $p = 2k$: $2q^2 = 4k^2$, so $q^2 = 2k^2$, hence $q$ is even.",
+      "status": "proven"
+    },
+    {
+      "id": "contradiction",
+      "type": "claim",
+      "title": "$p$ and $q$ share factor 2",
+      "statement": "Both $p$ and $q$ are even, contradicting $\\gcd(p, q) = 1$.",
+      "status": "proven"
+    },
+    {
+      "id": "conclusion",
+      "type": "conclusion",
+      "title": "$\\sqrt{2}$ is irrational",
+      "statement": "The assumption is impossible, so no such $p/q$ exists and $\\sqrt{2}$ is irrational.",
+      "status": "proven"
+    },
+    {
+      "id": "formal",
+      "type": "formalCode",
+      "title": "Lean formalization",
+      "statement": "Formal statement to be discharged in Lean.",
+      "formalDialect": "lean",
+      "formalCode": "theorem sqrt2_irrational : Irrational (Real.sqrt 2) := by\n  sorry",
+      "status": "inProgress",
+      "verification": "partial",
+      "sourceFile": "Sqrt2.lean",
+      "sourceLine": 3,
+      "subgoals": [
+        { "title": "Replace sorry with the contradiction argument", "detail": "Port the p/q lowest-terms argument to mathlib.", "status": "open" }
+      ],
+      "tags": ["lean", "formalization"]
+    }
+  ],
+  "edges": [
+    { "from": "strategy", "to": "thm", "type": "supports" },
+    { "from": "strategy", "to": "assume", "type": "motivates" },
+    { "from": "assume", "to": "square", "type": "implies" },
+    { "from": "square", "to": "p-even", "type": "implies" },
+    { "from": "p-even", "to": "q-even", "type": "implies" },
+    { "from": "p-even", "to": "contradiction", "type": "supports" },
+    { "from": "q-even", "to": "contradiction", "type": "implies" },
+    { "from": "assume", "to": "contradiction", "type": "contradicts", "label": "assumption fails" },
+    { "from": "contradiction", "to": "conclusion", "type": "implies" },
+    { "from": "conclusion", "to": "thm", "type": "implies" },
+    { "from": "formal", "to": "thm", "type": "witnesses", "label": "formal proof" }
+  ]
+}

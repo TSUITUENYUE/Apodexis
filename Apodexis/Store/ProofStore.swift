@@ -10,15 +10,36 @@ final class ProofStore: ObservableObject {
     @Published var activeProjectID: UUID?
     @Published var selectedBranchID: UUID?
     @Published var selectedNodeID: UUID?
+    /// The node currently expanded into a full-page reader, if any.
+    @Published var expandedNodeID: UUID?
     @Published var layoutRevision = 0
     @Published var edgeCreationMode = false
     @Published var edgeCreationSourceID: UUID?
     @Published var edgeDraftKind: EdgeKind = .uses
 
+    /// An in-progress drag-to-connect gesture. `currentPoint` follows the cursor
+    /// in canvas coordinates so the workspace can draw a live connector line.
+    @Published var pendingConnection: PendingConnection?
+
+    @Published private(set) var canUndo = false
+    @Published private(set) var canRedo = false
+
+    struct PendingConnection {
+        let sourceID: UUID
+        var currentPoint: GraphPoint
+    }
+
     private var projectIndex = ProjectIndex()
     private let appDirectory: URL
     private var activeProjectDirectoryURL: URL?
     private var activeGraphFileName = ProofStore.defaultGraphFileName
+
+    private var undoStack: [ProofProject] = []
+    private var redoStack: [ProofProject] = []
+    private var lastUndoCoalesceKey: String?
+    private var lastUndoSnapshotTime = Date.distantPast
+    private let maxUndoDepth = 60
+    private let undoCoalesceInterval: TimeInterval = 0.8
 
     private static let defaultGraphFileName = "apodexis.json"
 
@@ -88,6 +109,8 @@ final class ProofStore: ObservableObject {
             activeProjectDirectoryURL = projectDirectoryURL(for: summary)
             activeGraphFileName = summary.graphFileName
             selectInitialNode()
+            expandedNodeID = nil
+            clearUndoHistory()
             refreshProjectFiles()
             projectIndex.lastOpenProjectID = summary.id
             persistIndex()
@@ -104,6 +127,9 @@ final class ProofStore: ObservableObject {
         activeProjectDirectoryURL = nil
         activeGraphFileName = Self.defaultGraphFileName
         projectFiles = []
+        pendingConnection = nil
+        expandedNodeID = nil
+        clearUndoHistory()
         projectIndex.lastOpenProjectID = nil
         persistIndex()
     }
@@ -134,9 +160,12 @@ final class ProofStore: ObservableObject {
         let directoryURL = url.standardizedFileURL
         var graphURL = try findGraphFile(in: directoryURL)
         var loadedProject: ProofProject
+        var requestsAutoLayout = false
 
         if let graphURL {
-            loadedProject = try loadProjectDocument(from: graphURL)
+            let document = try loadDocument(from: graphURL)
+            loadedProject = document.project
+            requestsAutoLayout = document.requestsAutoLayout
         } else {
             loadedProject = .blank(title: directoryURL.lastPathComponent)
             loadedProject.updatedAt = Date()
@@ -155,6 +184,11 @@ final class ProofStore: ObservableObject {
             graphFileName: graphURL?.lastPathComponent ?? Self.defaultGraphFileName,
             isManaged: false
         )
+
+        if requestsAutoLayout {
+            autoLayoutAllBranches()
+            clearUndoHistory()
+        }
     }
 
     func selectBranch(id: UUID) {
@@ -229,7 +263,7 @@ final class ProofStore: ObservableObject {
 
     func updateNode(_ node: ProofNode) {
         guard hasOpenProject else { return }
-        mutate {
+        mutate(coalescingKey: "node.\(node.id.uuidString)") {
             guard let index = project.nodes.firstIndex(where: { $0.id == node.id }) else { return }
             var updated = node
             updated.updatedAt = Date()
@@ -239,8 +273,9 @@ final class ProofStore: ObservableObject {
 
     func moveNode(id: UUID, to point: GraphPoint) {
         guard hasOpenProject else { return }
-        objectWillChange.send()
         guard let index = project.nodes.firstIndex(where: { $0.id == id }) else { return }
+        recordUndoSnapshot(coalescingKey: "move.\(id.uuidString)")
+        objectWillChange.send()
         project.nodes[index].position = GraphPoint(
             x: max(120, point.x),
             y: max(90, point.y)
@@ -256,6 +291,9 @@ final class ProofStore: ObservableObject {
             project.nodes.removeAll { $0.id == id }
             project.edges.removeAll { $0.sourceID == id || $0.targetID == id }
 
+            if expandedNodeID == id {
+                expandedNodeID = nil
+            }
             if selectedNodeID == id {
                 selectedNodeID = visibleNodes.first?.id ?? project.nodes.first?.id
             }
@@ -336,7 +374,7 @@ final class ProofStore: ObservableObject {
 
     func updateBranch(_ branch: ProofBranch) {
         guard hasOpenProject else { return }
-        mutate {
+        mutate(coalescingKey: "branch.\(branch.id.uuidString)") {
             guard let index = project.branches.firstIndex(where: { $0.id == branch.id }) else { return }
             project.branches[index] = branch
         }
@@ -387,14 +425,377 @@ final class ProofStore: ObservableObject {
         }
     }
 
+    /// Creates a brand-new project pre-populated with the worked example so people
+    /// can explore a real proof graph before building their own.
+    func createSampleProject(title: String = "Sample proof") {
+        var sample = ProofProject.sample()
+        sample.id = UUID()
+        sample.title = title
+        sample.updatedAt = Date()
+        activateNewProject(
+            sample,
+            directoryURL: managedProjectDirectoryURL(for: sample.id),
+            graphFileName: Self.defaultGraphFileName,
+            isManaged: true
+        )
+    }
+
+    // MARK: - Undo / Redo
+
+    func undo() {
+        guard let previous = undoStack.popLast() else { return }
+        objectWillChange.send()
+        redoStack.append(project)
+        applyRestoredProject(previous)
+        lastUndoCoalesceKey = nil
+        updateUndoState()
+    }
+
+    func redo() {
+        guard let next = redoStack.popLast() else { return }
+        objectWillChange.send()
+        undoStack.append(project)
+        applyRestoredProject(next)
+        lastUndoCoalesceKey = nil
+        updateUndoState()
+    }
+
+    private func applyRestoredProject(_ snapshot: ProofProject) {
+        project = snapshot
+        if let branchID = selectedBranchID, !project.branches.contains(where: { $0.id == branchID }) {
+            selectedBranchID = project.branches.first?.id
+        }
+        if let nodeID = selectedNodeID, !project.nodes.contains(where: { $0.id == nodeID }) {
+            selectedNodeID = nil
+        }
+        if let nodeID = expandedNodeID, !project.nodes.contains(where: { $0.id == nodeID }) {
+            expandedNodeID = nil
+        }
+        cancelEdgeCreation()
+        pendingConnection = nil
+        project.updatedAt = Date()
+        layoutRevision += 1
+        persist()
+    }
+
+    /// Captures the current project as an undo point. `coalescingKey` groups a burst
+    /// of like changes (e.g. typing into one node) into a single undo step.
+    private func recordUndoSnapshot(coalescingKey: String? = nil) {
+        guard hasOpenProject else { return }
+        let now = Date()
+        if let coalescingKey,
+           coalescingKey == lastUndoCoalesceKey,
+           now.timeIntervalSince(lastUndoSnapshotTime) < undoCoalesceInterval {
+            lastUndoSnapshotTime = now
+            return
+        }
+
+        undoStack.append(project)
+        if undoStack.count > maxUndoDepth {
+            undoStack.removeFirst(undoStack.count - maxUndoDepth)
+        }
+        redoStack.removeAll()
+        lastUndoCoalesceKey = coalescingKey
+        lastUndoSnapshotTime = now
+        updateUndoState()
+    }
+
+    private func updateUndoState() {
+        canUndo = !undoStack.isEmpty
+        canRedo = !redoStack.isEmpty
+    }
+
+    private func clearUndoHistory() {
+        undoStack.removeAll()
+        redoStack.removeAll()
+        lastUndoCoalesceKey = nil
+        lastUndoSnapshotTime = .distantPast
+        updateUndoState()
+    }
+
+    // MARK: - Drag to connect
+
+    func beginConnectionDrag(from nodeID: UUID, at point: GraphPoint) {
+        guard hasOpenProject, project.nodes.contains(where: { $0.id == nodeID }) else { return }
+        cancelEdgeCreation()
+        selectNode(id: nodeID)
+        pendingConnection = PendingConnection(sourceID: nodeID, currentPoint: point)
+    }
+
+    func updateConnectionDrag(to point: GraphPoint) {
+        guard pendingConnection != nil else { return }
+        pendingConnection?.currentPoint = point
+    }
+
+    func completeConnectionDrag(to targetID: UUID?) {
+        defer { pendingConnection = nil }
+        guard let pending = pendingConnection else { return }
+        guard let targetID, targetID != pending.sourceID else { return }
+        addEdge(from: pending.sourceID, to: targetID, kind: edgeDraftKind)
+    }
+
+    func cancelConnectionDrag() {
+        pendingConnection = nil
+    }
+
+    // MARK: - AI assistant bridge
+
+    struct AssistantApplyResult {
+        var addedNodes = 0
+        var updatedNodes = 0
+        var addedEdges = 0
+        var addedBranches = 0
+
+        var isEmpty: Bool {
+            addedNodes == 0 && updatedNodes == 0 && addedEdges == 0 && addedBranches == 0
+        }
+
+        var summary: String {
+            var parts: [String] = []
+            if addedNodes > 0 { parts.append("added \(addedNodes) node\(addedNodes == 1 ? "" : "s")") }
+            if updatedNodes > 0 { parts.append("updated \(updatedNodes) node\(updatedNodes == 1 ? "" : "s")") }
+            if addedEdges > 0 { parts.append("added \(addedEdges) edge\(addedEdges == 1 ? "" : "s")") }
+            if addedBranches > 0 { parts.append("added \(addedBranches) branch\(addedBranches == 1 ? "" : "es")") }
+            return parts.isEmpty ? "no changes" : parts.joined(separator: ", ")
+        }
+    }
+
+    enum AssistantApplyError: LocalizedError {
+        case noOpenProject
+        var errorDescription: String? {
+            switch self {
+            case .noOpenProject: "No project is open to apply changes to."
+            }
+        }
+    }
+
+    /// The current project rendered in the simple import format, using UUID strings
+    /// as ids. This is what the assistant "sees" so it can reference existing nodes.
+    func currentGraphImportJSON() -> String {
+        guard hasOpenProject else { return "{}" }
+
+        let branches: [[String: Any]] = project.branches.map { branch in
+            var dict: [String: Any] = [
+                "id": branch.id.uuidString,
+                "name": branch.name,
+                "status": branch.status.rawValue,
+                "color": branch.colorName
+            ]
+            if !branch.summary.isEmpty { dict["summary"] = branch.summary }
+            if let parent = branch.parentBranchID { dict["parent"] = parent.uuidString }
+            if let forked = branch.forkedFromNodeID { dict["forkedFrom"] = forked.uuidString }
+            return dict
+        }
+
+        let nodes: [[String: Any]] = project.nodes.map { node in
+            var dict: [String: Any] = [
+                "id": node.id.uuidString,
+                "branch": node.branchID.uuidString,
+                "type": node.kind.rawValue,
+                "title": node.title,
+                "status": node.status.rawValue,
+                "verification": node.verification.rawValue
+            ]
+            if !node.statement.isEmpty { dict["statement"] = node.statement }
+            if !node.context.isEmpty { dict["context"] = node.context }
+            if !node.proofSketch.isEmpty { dict["proofSketch"] = node.proofSketch }
+            if !node.formalCode.isEmpty {
+                dict["formalCode"] = node.formalCode
+                dict["formalDialect"] = node.formalDialect.rawValue
+            }
+            if !node.assumptions.isEmpty { dict["assumptions"] = node.assumptions }
+            if !node.subgoals.isEmpty {
+                dict["subgoals"] = node.subgoals.map { ["title": $0.title, "detail": $0.detail, "status": $0.status.rawValue] }
+            }
+            if !node.symbols.isEmpty {
+                dict["symbols"] = node.symbols.map { ["symbol": $0.symbol, "meaning": $0.meaning, "scope": $0.scope] }
+            }
+            if !node.tags.isEmpty { dict["tags"] = node.tags }
+            if let sourceFile = node.sourceFile { dict["sourceFile"] = sourceFile }
+            if let sourceLine = node.sourceLine { dict["sourceLine"] = sourceLine }
+            return dict
+        }
+
+        let edges: [[String: Any]] = project.edges.map { edge in
+            var dict: [String: Any] = [
+                "from": edge.sourceID.uuidString,
+                "to": edge.targetID.uuidString,
+                "type": edge.kind.rawValue
+            ]
+            if !edge.label.isEmpty { dict["label"] = edge.label }
+            return dict
+        }
+
+        let document: [String: Any] = [
+            "title": project.title,
+            "branches": branches,
+            "nodes": nodes,
+            "edges": edges
+        ]
+
+        guard let data = try? JSONSerialization.data(withJSONObject: document, options: [.prettyPrinted, .sortedKeys]),
+              let string = String(data: data, encoding: .utf8) else {
+            return "{}"
+        }
+        return string
+    }
+
+    /// Merges an assistant-produced import document into the open project as a
+    /// single undo step. Ids that match an existing node/branch are updated in
+    /// place; new ids are created. Edges reference nodes by id.
+    @discardableResult
+    func applyAssistantGraph(jsonData: Data) throws -> AssistantApplyResult {
+        guard hasOpenProject else { throw AssistantApplyError.noOpenProject }
+        let edit = try JSONDecoder.proofChain.decode(AssistantGraphEdit.self, from: jsonData)
+
+        recordUndoSnapshot()
+        objectWillChange.send()
+
+        var result = AssistantApplyResult()
+        var firstAddedNodeID: UUID?
+
+        // Branch ids: existing UUID strings resolve to themselves; new keys map to fresh UUIDs.
+        var branchKeyToID: [String: UUID] = [:]
+        for branch in project.branches { branchKeyToID[branch.id.uuidString] = branch.id }
+
+        for input in edit.branches ?? [] {
+            let existingID = UUID(uuidString: input.id).flatMap { id in
+                project.branches.contains(where: { $0.id == id }) ? id : nil
+            }
+            let id = existingID ?? UUID()
+            branchKeyToID[input.id] = id
+            let branch = ProofBranch(
+                id: id,
+                name: input.name,
+                summary: input.summary ?? "",
+                parentBranchID: input.parent.flatMap { branchKeyToID[$0] },
+                forkedFromNodeID: nil,
+                status: (try? input.statusValue()) ?? .active,
+                colorName: input.color ?? "blue"
+            )
+            if let index = project.branches.firstIndex(where: { $0.id == id }) {
+                project.branches[index] = branch
+            } else {
+                project.branches.append(branch)
+                result.addedBranches += 1
+            }
+        }
+
+        var nodeKeyToID: [String: UUID] = [:]
+        for node in project.nodes { nodeKeyToID[node.id.uuidString] = node.id }
+        var newNodeIndex = project.nodes.count
+
+        for input in edit.nodes ?? [] {
+            let existingID = UUID(uuidString: input.id).flatMap { id in
+                project.nodes.contains(where: { $0.id == id }) ? id : nil
+            }
+            let id = existingID ?? UUID()
+            nodeKeyToID[input.id] = id
+            let branchID = input.branch.flatMap { branchKeyToID[$0] }
+                ?? selectedBranchID
+                ?? project.branches.first?.id
+                ?? createMainBranch()
+
+            if let index = project.nodes.firstIndex(where: { $0.id == id }) {
+                var updated = project.nodes[index]
+                updated.title = input.title
+                if input.branch != nil { updated.branchID = branchID }
+                if input.type != nil { updated.kind = try input.kindValue() }
+                if let statement = input.statement { updated.statement = statement }
+                if let context = input.context { updated.context = context }
+                if let proofSketch = input.proofSketch { updated.proofSketch = proofSketch }
+                if let formalCode = input.formalCode { updated.formalCode = formalCode }
+                if input.formalDialect != nil { updated.formalDialect = try input.formalDialectValue() }
+                if input.status != nil { updated.status = try input.statusValue() }
+                if input.verification != nil { updated.verification = try input.verificationValue() }
+                if let assumptions = input.assumptions { updated.assumptions = assumptions }
+                if let subgoals = input.subgoals { updated.subgoals = try subgoals.map { try $0.makeSubgoal() } }
+                if let symbols = input.symbols { updated.symbols = symbols.map { $0.makeSymbol() } }
+                if let tags = input.tags { updated.tags = tags }
+                if let sourceFile = input.sourceFile { updated.sourceFile = sourceFile }
+                if let sourceLine = input.sourceLine { updated.sourceLine = sourceLine }
+                if let position = input.position { updated.position = GraphPoint(x: position.x, y: position.y) }
+                updated.updatedAt = Date()
+                project.nodes[index] = updated
+                result.updatedNodes += 1
+            } else {
+                let position = input.position.map { GraphPoint(x: $0.x, y: $0.y) }
+                    ?? GraphPoint(x: 250 + Double(newNodeIndex % 4) * 270, y: 180 + Double(newNodeIndex / 4) * 220)
+                newNodeIndex += 1
+                let node = ProofNode(
+                    id: id,
+                    title: input.title,
+                    kind: try input.kindValue(),
+                    statement: input.statement ?? "",
+                    context: input.context ?? "",
+                    proofSketch: input.proofSketch ?? "",
+                    formalCode: input.formalCode ?? "",
+                    formalDialect: try input.formalDialectValue(),
+                    status: try input.statusValue(),
+                    verification: try input.verificationValue(),
+                    branchID: branchID,
+                    position: position,
+                    assumptions: input.assumptions ?? [],
+                    subgoals: try (input.subgoals ?? []).map { try $0.makeSubgoal() },
+                    symbols: (input.symbols ?? []).map { $0.makeSymbol() },
+                    tags: input.tags ?? [],
+                    sourceFile: input.sourceFile,
+                    sourceLine: input.sourceLine
+                )
+                project.nodes.append(node)
+                if firstAddedNodeID == nil { firstAddedNodeID = id }
+                result.addedNodes += 1
+            }
+        }
+
+        for input in edit.edges ?? [] {
+            guard let from = nodeKeyToID[input.from],
+                  let to = nodeKeyToID[input.to],
+                  from != to else { continue }
+            let kind = (try? input.kindValue()) ?? .uses
+            let exists = project.edges.contains {
+                $0.sourceID == from && $0.targetID == to && $0.kind == kind
+            }
+            guard !exists else { continue }
+            project.edges.append(ProofEdge(sourceID: from, targetID: to, kind: kind, label: input.label ?? ""))
+            result.addedEdges += 1
+        }
+
+        if let title = edit.title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
+            project.title = title
+        }
+
+        if let firstAddedNodeID {
+            selectedNodeID = firstAddedNodeID
+            selectedBranchID = project.nodes.first { $0.id == firstAddedNodeID }?.branchID ?? selectedBranchID
+        }
+
+        project.updatedAt = Date()
+        persist()
+
+        // Tidy the layout when the assistant added several nodes and left them unplaced.
+        let noPositions = (edit.nodes ?? []).allSatisfy { $0.position == nil }
+        if result.addedNodes >= 3 && noPositions {
+            for branch in project.branches {
+                applyAutoLayout(to: branch.id, persistImmediately: false)
+            }
+            layoutRevision += 1
+            persist()
+        }
+
+        return result
+    }
+
     func autoLayoutSelectedBranch() {
         guard hasOpenProject, let selectedBranchID else { return }
+        recordUndoSnapshot()
         objectWillChange.send()
         applyAutoLayout(to: selectedBranchID)
     }
 
     func autoLayoutAllBranches() {
         guard hasOpenProject else { return }
+        recordUndoSnapshot()
         objectWillChange.send()
         for branch in project.branches {
             applyAutoLayout(to: branch.id, persistImmediately: false)
@@ -412,7 +813,8 @@ final class ProofStore: ObservableObject {
             }
         }
 
-        var imported = try loadProjectDocument(from: url)
+        let document = try loadDocument(from: url)
+        var imported = document.project
 
         if projects.contains(where: { $0.id == imported.id }) {
             imported.id = UUID()
@@ -424,6 +826,11 @@ final class ProofStore: ObservableObject {
             graphFileName: Self.defaultGraphFileName,
             isManaged: true
         )
+
+        if document.requestsAutoLayout {
+            autoLayoutAllBranches()
+            clearUndoHistory()
+        }
     }
 
     private func applyAutoLayout(to branchID: UUID, persistImmediately: Bool = true) {
@@ -558,8 +965,9 @@ final class ProofStore: ObservableObject {
         return branch.id
     }
 
-    private func mutate(_ updates: () -> Void) {
+    private func mutate(coalescingKey: String? = nil, _ updates: () -> Void) {
         guard hasOpenProject else { return }
+        recordUndoSnapshot(coalescingKey: coalescingKey)
         objectWillChange.send()
         updates()
         project.updatedAt = Date()
@@ -577,6 +985,9 @@ final class ProofStore: ObservableObject {
         activeProjectDirectoryURL = directoryURL
         activeGraphFileName = graphFileName
         selectInitialNode()
+        pendingConnection = nil
+        expandedNodeID = nil
+        clearUndoHistory()
         projectIndex.lastOpenProjectID = newProject.id
         upsertSummary(for: newProject, directoryURL: directoryURL, graphFileName: graphFileName, isManaged: isManaged)
         refreshProjectFiles()
@@ -699,16 +1110,28 @@ final class ProofStore: ObservableObject {
         projectIndex.projects = projects
     }
 
+    struct LoadedDocument {
+        let project: ProofProject
+        /// True when the source used the simple import format and left every node
+        /// without an explicit position — i.e. an AI/hand-authored graph that should
+        /// be arranged for the user rather than shown as a raw grid.
+        let requestsAutoLayout: Bool
+    }
+
     private func loadProjectDocument(from url: URL) throws -> ProofProject {
+        try loadDocument(from: url).project
+    }
+
+    private func loadDocument(from url: URL) throws -> LoadedDocument {
         let data = try Data(contentsOf: url)
 
         if let internalProject = try? JSONDecoder.proofChain.decode(ProofProject.self, from: data) {
-            return internalProject
+            return LoadedDocument(project: internalProject, requestsAutoLayout: false)
         }
 
-        return try JSONDecoder.proofChain
-            .decode(ApodexisImportDocument.self, from: data)
-            .makeProject()
+        let document = try JSONDecoder.proofChain.decode(ApodexisImportDocument.self, from: data)
+        let requestsAutoLayout = document.nodes.allSatisfy { $0.position == nil }
+        return LoadedDocument(project: try document.makeProject(), requestsAutoLayout: requestsAutoLayout)
     }
 
     private func findGraphFile(in directoryURL: URL) throws -> URL? {
@@ -1087,6 +1510,16 @@ private struct ImportEdge: Decodable {
 private struct ImportPoint: Decodable {
     var x: Double
     var y: Double
+}
+
+/// A lenient variant of the import document for incremental assistant edits:
+/// everything is optional, so the model can send just the nodes/edges it wants to
+/// add or change. Reuses the same node/edge/branch shapes as a full import.
+private struct AssistantGraphEdit: Decodable {
+    var title: String?
+    var branches: [ImportBranch]?
+    var nodes: [ImportNode]?
+    var edges: [ImportEdge]?
 }
 
 private enum ApodexisImportError: LocalizedError {

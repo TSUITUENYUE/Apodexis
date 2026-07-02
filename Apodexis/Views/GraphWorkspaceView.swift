@@ -12,6 +12,11 @@ struct GraphWorkspaceView: View {
             GraphCanvasView()
         }
         .background(Color.appBackground)
+        .overlay {
+            if let id = store.expandedNodeID {
+                NodeExpansionOverlay(nodeID: id)
+            }
+        }
     }
 }
 
@@ -85,6 +90,7 @@ private struct GraphCanvasView: View {
     @EnvironmentObject private var store: ProofStore
 
     private static let branchFocusID = "branch-focus"
+    static let canvasSpace = "apodexis.canvas"
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -93,6 +99,7 @@ private struct GraphCanvasView: View {
                     ZStack(alignment: .topLeading) {
                         Canvas { context, _ in
                             drawEdges(in: context)
+                            drawPendingConnection(in: context)
                         }
                         .frame(width: canvasSize.width, height: canvasSize.height)
                         .allowsHitTesting(false)
@@ -121,34 +128,58 @@ private struct GraphCanvasView: View {
                     }
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     .background(canvasBackground)
+                    .coordinateSpace(name: GraphCanvasView.canvasSpace)
                 }
 
-                HStack(spacing: 8) {
-                    Button {
-                        store.autoLayoutSelectedBranch()
-                        centerBranch(proxy)
-                    } label: {
-                        Image(systemName: "rectangle.connected.to.line.below")
-                            .font(.body.weight(.semibold))
-                            .frame(width: 34, height: 34)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help("Auto layout")
+                if !store.visibleNodes.isEmpty {
+                    HStack(spacing: 8) {
+                        Button {
+                            store.autoLayoutSelectedBranch()
+                            centerBranch(proxy)
+                        } label: {
+                            Image(systemName: "rectangle.connected.to.line.below")
+                                .font(.body.weight(.semibold))
+                                .frame(width: 34, height: 34)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .help("Auto layout")
 
-                    Button {
-                        centerBranch(proxy)
-                    } label: {
-                        Image(systemName: "scope")
-                            .font(.body.weight(.semibold))
-                            .frame(width: 34, height: 34)
+                        Button {
+                            centerBranch(proxy)
+                        } label: {
+                            Image(systemName: "scope")
+                                .font(.body.weight(.semibold))
+                                .frame(width: 34, height: 34)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .help("Center branch")
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help("Center branch")
+                    .padding(14)
                 }
-                .padding(14)
             }
+            .overlay(alignment: .top) {
+                if store.edgeCreationMode {
+                    EdgeCreationBanner()
+                        .padding(.top, 14)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .overlay {
+                if store.visibleNodes.isEmpty {
+                    CanvasEmptyState()
+                }
+            }
+            .background {
+                // Invisible Esc handler so connecting can always be cancelled.
+                if store.edgeCreationMode {
+                    Button("Cancel connecting", action: store.cancelEdgeCreation)
+                        .keyboardShortcut(.cancelAction)
+                        .hidden()
+                }
+            }
+            .animation(.easeInOut(duration: 0.2), value: store.edgeCreationMode)
             .onAppear {
                 centerBranch(proxy, animated: false)
             }
@@ -254,9 +285,49 @@ private struct GraphCanvasView: View {
             path.move(to: start)
             path.addCurve(to: end, control1: controlA, control2: controlB)
 
-            context.stroke(path, with: .color(edge.kind.tint.opacity(0.72)), lineWidth: 2.5)
-            drawArrow(in: context, from: controlB, to: end, color: edge.kind.tint)
+            context.stroke(
+                path,
+                with: .color(edge.kind.tint.opacity(0.8)),
+                style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round, dash: edge.kind.dashPattern)
+            )
+            fillArrowHead(in: context, tip: end, from: controlB, color: edge.kind.tint)
+            if edge.kind.isBidirectional {
+                fillArrowHead(in: context, tip: start, from: controlA, color: edge.kind.tint)
+            }
         }
+    }
+
+    private func fillArrowHead(in context: GraphicsContext, tip: CGPoint, from: CGPoint, color: Color) {
+        let angle = atan2(tip.y - from.y, tip.x - from.x)
+        let size: CGFloat = 11
+        let spread = CGFloat.pi / 7
+        let wingA = CGPoint(x: tip.x - size * cos(angle - spread), y: tip.y - size * sin(angle - spread))
+        let wingB = CGPoint(x: tip.x - size * cos(angle + spread), y: tip.y - size * sin(angle + spread))
+
+        var triangle = Path()
+        triangle.move(to: tip)
+        triangle.addLine(to: wingA)
+        triangle.addLine(to: wingB)
+        triangle.closeSubpath()
+        context.fill(triangle, with: .color(color.opacity(0.9)))
+    }
+
+    private func drawPendingConnection(in context: GraphicsContext) {
+        guard let pending = store.pendingConnection,
+              let source = node(pending.sourceID) else { return }
+
+        let end = CGPoint(x: pending.currentPoint.x, y: pending.currentPoint.y)
+        let start = connectionPoint(from: cgPosition(for: source), toward: end)
+
+        var path = Path()
+        path.move(to: start)
+        path.addLine(to: end)
+        context.stroke(
+            path,
+            with: .color(Color.accentColor.opacity(0.85)),
+            style: StrokeStyle(lineWidth: 2.5, lineCap: .round, dash: [7, 5])
+        )
+        drawArrow(in: context, from: start, to: end, color: .accentColor)
     }
 
     private func connectionPoint(from center: CGPoint, toward target: CGPoint) -> CGPoint {
@@ -318,8 +389,114 @@ private struct GraphCanvasView: View {
     }
 }
 
+private struct EdgeCreationBanner: View {
+    @EnvironmentObject private var store: ProofStore
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "link")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.tint)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button("Cancel") {
+                store.cancelEdgeCreation()
+            }
+            .controlSize(.small)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.regularMaterial, in: Capsule())
+        .overlay {
+            Capsule().stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
+    }
+
+    private var relation: String {
+        store.edgeDraftKind.title
+    }
+
+    private var title: String {
+        store.edgeCreationSourceID == nil
+            ? "Connecting with “\(relation)”"
+            : "Now click where it \(relation)"
+    }
+
+    private var subtitle: String {
+        store.edgeCreationSourceID == nil
+            ? "Click the node the relation starts from."
+            : "Click the target node — or press Esc to cancel."
+    }
+}
+
+private struct CanvasEmptyState: View {
+    @EnvironmentObject private var store: ProofStore
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "point.3.connected.trianglepath.dotted")
+                .font(.system(size: 42, weight: .light))
+                .foregroundStyle(.tint)
+
+            VStack(spacing: 6) {
+                Text("Start your proof chain")
+                    .font(.title2.weight(.semibold))
+                Text("Add the theorem you're working toward, then branch out with the lemmas, cases, and steps that lead to it.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 380)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Button {
+                store.addNode(kind: .theorem)
+            } label: {
+                Label("Add your first node", systemImage: "plus")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+
+            Text("Double-click a node to edit it · use Connect to link two nodes")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(40)
+    }
+}
+
+private struct ConnectorHandle: View {
+    var isActive: Bool
+
+    var body: some View {
+        Circle()
+            .fill(Color.accentColor)
+            .frame(width: 16, height: 16)
+            .overlay {
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .overlay {
+                Circle().stroke(Color(NSColor.windowBackgroundColor), lineWidth: 2)
+            }
+            .scaleEffect(isActive ? 1.3 : 1)
+            .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
+            .contentShape(Circle())
+            .animation(.easeOut(duration: 0.12), value: isActive)
+    }
+}
+
 private enum GraphMetrics {
-    static let cardSize = CGSize(width: 246, height: 154)
+    static let cardSize = CGSize(width: 214, height: 74)
     static let minimumCanvasSize = CGSize(width: 1600, height: 1050)
     static let canvasPadding: CGFloat = 360
 }
@@ -338,16 +515,20 @@ private struct EdgeLabel: View {
                 }
             }
         } label: {
-            Text(labelText)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(edge.kind.tint)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 4)
-                .background(.regularMaterial, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(edge.kind.tint.opacity(0.25), lineWidth: 1)
-                }
+            HStack(spacing: 4) {
+                Image(systemName: edge.kind.glyph)
+                    .font(.system(size: 9, weight: .bold))
+                Text(labelText)
+                    .font(.caption2.weight(.semibold))
+            }
+            .foregroundStyle(edge.kind.tint)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(.regularMaterial, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(edge.kind.tint.opacity(0.3), lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
         .help("Change relation")
@@ -368,73 +549,65 @@ private struct GraphNodeCard: View {
 
     @State private var dragStart: GraphPoint?
     @State private var dragOffset: CGSize = .zero
-    @State private var editingField: EditableNodeField?
-    @State private var draftTitle = ""
-    @State private var draftStatement = ""
-    @FocusState private var focusedField: EditableNodeField?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: node.kind.systemImage)
+        HStack(spacing: 10) {
+            Image(systemName: node.kind.systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(node.kind.tint)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(node.kind.title.uppercased())
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(0.4)
                     .foregroundStyle(node.kind.tint)
-                    .frame(width: 20)
-
-                Text(node.kind.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(node.kind.tint)
-
-                Spacer()
-
-                if store.sourceURL(for: node) != nil {
-                    Button {
-                        openSourceFile()
-                    } label: {
-                        Image(systemName: "curlybraces")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .buttonStyle(.plain)
-                    .help("Open source file")
-                }
-
-                ProofStatusDotMenu(status: node.status) { status in
-                    setProofStatus(status)
-                }
+                Text(LaTeXRenderer.render(node.title))
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            titleContent
+            Spacer(minLength: 2)
 
-            statementContent
-
-            Spacer(minLength: 0)
-
-            HStack(spacing: 6) {
-                ProofStatusMenu(status: node.status) { status in
-                    setProofStatus(status)
-                }
-                VerificationStatusMenu(status: node.verification) { status in
-                    setVerificationStatus(status)
-                }
-                if !node.subgoals.isEmpty {
-                    SubgoalStatusMenu(
-                        text: "\(openSubgoalCount)/\(node.subgoals.count) goals",
-                        color: openSubgoalCount == 0 ? .green : .orange,
-                        selectedStatus: primarySubgoalStatus
-                    ) { status in
-                        setPrimarySubgoalStatus(status)
-                    }
+            VStack(spacing: 5) {
+                Circle()
+                    .fill(node.status.tint)
+                    .frame(width: 9, height: 9)
+                    .help(node.status.title)
+                if openSubgoalCount > 0 {
+                    Text("\(openSubgoalCount)")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.orange)
+                        .help("\(openSubgoalCount) open goal\(openSubgoalCount == 1 ? "" : "s")")
                 }
             }
         }
-        .padding(12)
-        .frame(width: GraphMetrics.cardSize.width, height: GraphMetrics.cardSize.height, alignment: .topLeading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .padding(.leading, 14)
+        .padding(.trailing, 12)
+        .padding(.vertical, 10)
+        .frame(width: GraphMetrics.cardSize.width, height: GraphMetrics.cardSize.height, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(node.kind.tint)
+                .frame(width: 4)
+                .padding(.vertical, 12)
+        }
         .overlay {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(borderColor, lineWidth: borderWidth)
         }
-        .shadow(color: .black.opacity(store.selectedNodeID == node.id ? 0.14 : 0.07), radius: 10, y: 5)
-        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(alignment: .trailing) {
+            if !store.edgeCreationMode {
+                ConnectorHandle(isActive: isConnectionSource)
+                    .offset(x: 10)
+                    .highPriorityGesture(connectorDragGesture)
+                    .help("Drag to another node to connect")
+            }
+        }
+        .shadow(color: .black.opacity(store.selectedNodeID == node.id ? 0.16 : 0.08), radius: 8, y: 4)
+        .contentShape(RoundedRectangle(cornerRadius: 12))
         .offset(dragOffset)
         .transaction { transaction in
             transaction.animation = nil
@@ -443,15 +616,16 @@ private struct GraphNodeCard: View {
             if store.edgeCreationMode {
                 store.handleEdgeCreationClick(on: node.id)
             } else {
-                store.selectNode(id: node.id)
+                expand()
             }
         }
-        .gesture(dragGesture, including: editingField == nil && !store.edgeCreationMode ? .all : .none)
-        .onChange(of: focusedField) {
-            guard let editingField, focusedField != editingField else { return }
-            commitEditing()
-        }
+        .gesture(dragGesture, including: store.edgeCreationMode ? .none : .all)
         .contextMenu {
+            Button {
+                expand()
+            } label: {
+                Label("Expand", systemImage: "arrow.up.left.and.arrow.down.right")
+            }
             Button(role: .destructive) {
                 store.deleteNode(id: node.id)
             } label: {
@@ -460,72 +634,66 @@ private struct GraphNodeCard: View {
         }
     }
 
-    @ViewBuilder
-    private var titleContent: some View {
-        if editingField == .title {
-            TextField("Title", text: $draftTitle, axis: .vertical)
-                .textFieldStyle(.plain)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(2)
-                .focused($focusedField, equals: .title)
-                .onSubmit(commitEditing)
-        } else {
-            Text(LaTeXRenderer.render(node.title))
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .onTapGesture(count: 2) {
-                    beginEditing(.title)
-                }
-                .onLongPressGesture {
-                    beginEditing(.title)
-                }
-        }
-    }
-
-    @ViewBuilder
-    private var statementContent: some View {
-        if editingField == .statement {
-            TextField("Statement", text: $draftStatement, axis: .vertical)
-                .textFieldStyle(.plain)
-                .font(.caption)
-                .lineLimit(3)
-                .focused($focusedField, equals: .statement)
-                .onSubmit(commitEditing)
-        } else {
-            Text(node.statement.isEmpty ? "No statement" : LaTeXRenderer.render(node.statement))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(3)
-                .onTapGesture(count: 2) {
-                    beginEditing(.statement)
-                }
-                .onLongPressGesture {
-                    beginEditing(.statement)
-                }
+    private func expand() {
+        store.selectNode(id: node.id)
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
+            store.expandedNodeID = node.id
         }
     }
 
     private var borderColor: Color {
-        if store.edgeCreationSourceID == node.id {
+        if isConnectionTarget || isConnectionSource || store.edgeCreationSourceID == node.id {
             return .accentColor
         }
         return store.selectedNodeID == node.id ? node.kind.tint : Color.primary.opacity(0.12)
     }
 
     private var borderWidth: CGFloat {
-        if store.edgeCreationSourceID == node.id {
+        if isConnectionTarget || isConnectionSource || store.edgeCreationSourceID == node.id {
             return 3
         }
         return store.selectedNodeID == node.id ? 2.5 : 1
     }
 
-    private var openSubgoalCount: Int {
-        node.subgoals.filter { $0.status != .proven }.count
+    private var isConnectionSource: Bool {
+        store.pendingConnection?.sourceID == node.id
     }
 
-    private var primarySubgoalStatus: ProofStatus {
-        node.subgoals.first { $0.status != .proven }?.status ?? node.subgoals.first?.status ?? .proven
+    private var isConnectionTarget: Bool {
+        guard let pending = store.pendingConnection, pending.sourceID != node.id else { return false }
+        return nodeRect(for: node).contains(CGPoint(x: pending.currentPoint.x, y: pending.currentPoint.y))
+    }
+
+    private func nodeRect(for candidate: ProofNode) -> CGRect {
+        CGRect(
+            x: candidate.position.x - GraphMetrics.cardSize.width / 2,
+            y: candidate.position.y - GraphMetrics.cardSize.height / 2,
+            width: GraphMetrics.cardSize.width,
+            height: GraphMetrics.cardSize.height
+        )
+    }
+
+    private var connectorDragGesture: some Gesture {
+        DragGesture(minimumDistance: 2, coordinateSpace: .named(GraphCanvasView.canvasSpace))
+            .onChanged { value in
+                let point = GraphPoint(x: value.location.x, y: value.location.y)
+                if store.pendingConnection == nil {
+                    store.beginConnectionDrag(from: node.id, at: point)
+                } else {
+                    store.updateConnectionDrag(to: point)
+                }
+            }
+            .onEnded { value in
+                let point = CGPoint(x: value.location.x, y: value.location.y)
+                let target = store.visibleNodes.first { candidate in
+                    candidate.id != node.id && nodeRect(for: candidate).contains(point)
+                }
+                store.completeConnectionDrag(to: target?.id)
+            }
+    }
+
+    private var openSubgoalCount: Int {
+        node.subgoals.filter { $0.status != .proven }.count
     }
 
     private var dragGesture: some Gesture {
@@ -548,77 +716,6 @@ private struct GraphNodeCard: View {
                 store.selectNode(id: node.id)
             }
     }
-
-    private func beginEditing(_ field: EditableNodeField) {
-        let currentNode = latestNode
-        draftTitle = currentNode.title
-        draftStatement = currentNode.statement
-        editingField = field
-        store.selectNode(id: node.id)
-
-        DispatchQueue.main.async {
-            focusedField = field
-        }
-    }
-
-    private func commitEditing() {
-        guard let editingField else { return }
-
-        updateLatestNode { updated in
-            switch editingField {
-            case .title:
-                let trimmed = draftTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-                updated.title = trimmed.isEmpty ? updated.title : trimmed
-            case .statement:
-                updated.statement = draftStatement
-            }
-        }
-
-        self.editingField = nil
-        focusedField = nil
-    }
-
-    private func setProofStatus(_ status: ProofStatus) {
-        updateLatestNode { node in
-            node.status = status
-        }
-    }
-
-    private func setVerificationStatus(_ status: VerificationStatus) {
-        updateLatestNode { node in
-            node.verification = status
-        }
-    }
-
-    private func setPrimarySubgoalStatus(_ status: ProofStatus) {
-        updateLatestNode { node in
-            let targetIndex = node.subgoals.firstIndex { $0.status != .proven } ?? node.subgoals.indices.first
-            guard let targetIndex else { return }
-            node.subgoals[targetIndex].status = status
-        }
-    }
-
-    private func openSourceFile() {
-        guard let sourceURL = store.sourceURL(for: node) else { return }
-        #if os(macOS)
-        NSWorkspace.shared.open(sourceURL)
-        #endif
-    }
-
-    private var latestNode: ProofNode {
-        store.project.nodes.first { $0.id == node.id } ?? node
-    }
-
-    private func updateLatestNode(_ updates: (inout ProofNode) -> Void) {
-        var updated = latestNode
-        updates(&updated)
-        store.updateNode(updated)
-    }
-}
-
-private enum EditableNodeField: Hashable {
-    case title
-    case statement
 }
 
 private struct ProofStatusDotMenu: View {
@@ -721,6 +818,307 @@ private struct StatusPill: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
             .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
+// MARK: - Expand-to-page
+
+private struct NodeExpansionOverlay: View {
+    @EnvironmentObject private var store: ProofStore
+    let nodeID: UUID
+
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(.black.opacity(0.28))
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture { dismiss() }
+                .transition(.opacity)
+
+            if let node = store.project.nodes.first(where: { $0.id == nodeID }) {
+                NodePageView(node: node, onClose: dismiss)
+                    .padding(36)
+                    .transition(.scale(scale: 0.92).combined(with: .opacity))
+            }
+        }
+        .background {
+            Button("", action: dismiss)
+                .keyboardShortcut(.cancelAction)
+                .hidden()
+        }
+    }
+
+    private func dismiss() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            store.expandedNodeID = nil
+        }
+    }
+}
+
+private struct NodePageView: View {
+    @EnvironmentObject private var store: ProofStore
+    let node: ProofNode
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            topBar
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text(LaTeXRenderer.render(node.title))
+                        .font(.title.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+
+                    if !node.statement.isEmpty {
+                        section("Statement") {
+                            Text(LaTeXRenderer.render(node.statement))
+                                .font(.title3)
+                                .textSelection(.enabled)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    if !node.context.isEmpty {
+                        section("Context") { bodyText(node.context) }
+                    }
+                    if !node.assumptions.isEmpty {
+                        section("Assumptions") {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ForEach(node.assumptions.indices, id: \.self) { index in
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Image(systemName: "circle.fill")
+                                            .font(.system(size: 5))
+                                            .foregroundStyle(.secondary)
+                                            .padding(.top, 6)
+                                        Text(LaTeXRenderer.render(node.assumptions[index]))
+                                            .textSelection(.enabled)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if !node.proofSketch.isEmpty {
+                        section("Proof sketch") { bodyText(node.proofSketch) }
+                    }
+                    if !node.formalCode.isEmpty {
+                        formalSection
+                    }
+                    if !node.subgoals.isEmpty {
+                        subgoalsSection
+                    }
+                    if !node.symbols.isEmpty {
+                        symbolsSection
+                    }
+                    if !relations.isEmpty {
+                        relationsSection
+                    }
+                    footer
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(maxWidth: 720, maxHeight: 720)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(node.kind.tint.opacity(0.25), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.3), radius: 30, y: 14)
+    }
+
+    private var topBar: some View {
+        HStack(spacing: 12) {
+            Label(node.kind.title, systemImage: node.kind.systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(node.kind.tint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(node.kind.tint.opacity(0.12), in: Capsule())
+
+            Spacer()
+
+            ProofStatusMenu(status: node.status) { setStatus($0) }
+            VerificationStatusMenu(status: node.verification) { setVerification($0) }
+
+            Button {
+                onClose()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Close")
+        }
+        .padding(16)
+    }
+
+    @ViewBuilder
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.caption.weight(.bold))
+                .tracking(0.5)
+                .foregroundStyle(.secondary)
+            content()
+        }
+    }
+
+    private func bodyText(_ text: String) -> some View {
+        Text(LaTeXRenderer.render(text))
+            .font(.body)
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var formalSection: some View {
+        section("Formal — \(node.formalDialect.title)") {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(node.formalCode)
+                    .font(.system(.callout, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+
+                ForEach(FormalAnalyzer.holes(in: node.formalCode, dialect: node.formalDialect)) { hole in
+                    Label("\(hole.token) · line \(hole.line)", systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
+        }
+    }
+
+    private var subgoalsSection: some View {
+        section("Subgoals") {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(node.subgoals) { subgoal in
+                    Button {
+                        toggleSubgoal(subgoal.id)
+                    } label: {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: subgoal.status == .proven ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(subgoal.status == .proven ? .green : .secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(LaTeXRenderer.render(subgoal.title))
+                                    .strikethrough(subgoal.status == .proven)
+                                    .foregroundStyle(subgoal.status == .proven ? .secondary : .primary)
+                                if !subgoal.detail.isEmpty {
+                                    Text(LaTeXRenderer.render(subgoal.detail))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var symbolsSection: some View {
+        section("Symbols") {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(node.symbols) { symbol in
+                    HStack(alignment: .top, spacing: 10) {
+                        Text(LaTeXRenderer.render(symbol.symbol))
+                            .font(.body.weight(.semibold))
+                            .frame(minWidth: 28, alignment: .leading)
+                        Text(symbol.meaning)
+                            .foregroundStyle(.secondary)
+                        if !symbol.scope.isEmpty {
+                            Spacer()
+                            Text(symbol.scope)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var relations: [ProofEdge] {
+        store.project.edges.filter { $0.sourceID == node.id || $0.targetID == node.id }
+    }
+
+    private var relationsSection: some View {
+        section("Relations") {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(relations) { edge in
+                    let outgoing = edge.sourceID == node.id
+                    let otherID = outgoing ? edge.targetID : edge.sourceID
+                    let otherTitle = store.project.nodes.first { $0.id == otherID }?.title ?? "Unknown"
+                    HStack(spacing: 8) {
+                        Image(systemName: outgoing ? "arrow.up.right" : "arrow.down.left")
+                            .foregroundStyle(edge.kind.tint)
+                            .frame(width: 16)
+                        HStack(spacing: 4) {
+                            Image(systemName: edge.kind.glyph).font(.caption2)
+                            Text(edge.kind.title)
+                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(edge.kind.tint)
+                        Text(LaTeXRenderer.render(otherTitle))
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+
+    private var footer: some View {
+        HStack {
+            if store.sourceURL(for: node) != nil {
+                Button {
+                    if let url = store.sourceURL(for: node) {
+                        #if os(macOS)
+                        NSWorkspace.shared.open(url)
+                        #endif
+                    }
+                } label: {
+                    Label("Open source file", systemImage: "curlybraces")
+                }
+            }
+            Spacer()
+            Button(role: .destructive) {
+                store.deleteNode(id: node.id)
+                onClose()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func setStatus(_ status: ProofStatus) {
+        update { $0.status = status }
+    }
+
+    private func setVerification(_ status: VerificationStatus) {
+        update { $0.verification = status }
+    }
+
+    private func toggleSubgoal(_ id: UUID) {
+        update { node in
+            guard let index = node.subgoals.firstIndex(where: { $0.id == id }) else { return }
+            node.subgoals[index].status = node.subgoals[index].status == .proven ? .open : .proven
+        }
+    }
+
+    private func update(_ changes: (inout ProofNode) -> Void) {
+        guard var updated = store.project.nodes.first(where: { $0.id == node.id }) else { return }
+        changes(&updated)
+        store.updateNode(updated)
     }
 }
 

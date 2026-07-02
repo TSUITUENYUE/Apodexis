@@ -14,7 +14,11 @@ struct InspectorView: View {
             } else if let branch = selectedBranchBinding {
                 BranchInspectorView(branch: branch)
             } else {
-                ContentUnavailableView("No Selection", systemImage: "sidebar.right")
+                ContentUnavailableView {
+                    Label("Nothing Selected", systemImage: "sidebar.right")
+                } description: {
+                    Text("Select a node or branch to see and edit its details here.")
+                }
             }
         }
         .frame(minWidth: 300)

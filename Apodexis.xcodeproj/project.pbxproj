@@ -17,6 +17,7 @@
 		A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* GraphWorkspaceView.swift */; };
 		A00100000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
 		A0010000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
+		A0010000000000000000000C /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000C /* AssistantView.swift */; };
 		A0010000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000B /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +32,7 @@
 		A00000000000000000000008 /* GraphWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphWorkspaceView.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000A /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
+		A0000000000000000000000C /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A000000000000000000000F1 /* Apodexis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Apodexis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -93,6 +95,7 @@
 				A00000000000000000000008 /* GraphWorkspaceView.swift */,
 				A00000000000000000000009 /* InspectorView.swift */,
 				A0000000000000000000000A /* ExportView.swift */,
+				A0000000000000000000000C /* AssistantView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -186,6 +189,7 @@
 				A00100000000000000000008 /* GraphWorkspaceView.swift in Sources */,
 				A00100000000000000000009 /* InspectorView.swift in Sources */,
 				A0010000000000000000000A /* ExportView.swift in Sources */,
+				A0010000000000000000000C /* AssistantView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

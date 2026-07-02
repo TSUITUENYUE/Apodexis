@@ -233,6 +233,24 @@ enum NodeKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+extension NodeKind {
+    /// A named group of node kinds, used to organize the "Add Node" menu so the
+    /// 17 available types read as a few clear choices rather than one long list.
+    struct MenuGroup: Identifiable {
+        let title: String
+        let kinds: [NodeKind]
+        var id: String { title }
+    }
+
+    static let menuGroups: [MenuGroup] = [
+        MenuGroup(title: "Results & Statements", kinds: [.theorem, .lemma, .claim, .conjecture, .definition, .assumption]),
+        MenuGroup(title: "Goals & Strategy", kinds: [.goal, .proposal, .strategy, .conclusion]),
+        MenuGroup(title: "Proof Moves", kinds: [.reduction, .caseSplit, .inductionStep, .construction]),
+        MenuGroup(title: "Exploration", kinds: [.counterexample, .failedAttempt]),
+        MenuGroup(title: "Formal", kinds: [.formalCode])
+    ]
+}
+
 enum EdgeKind: String, Codable, CaseIterable, Identifiable {
     case uses
     case implies
@@ -298,6 +316,43 @@ enum EdgeKind: String, Codable, CaseIterable, Identifiable {
         case .witnesses: .teal
         case .constrains: .indigo
         case .summarizes: .gray
+        }
+    }
+
+    /// Dash pattern for the connector. Empty = solid (core logical dependencies);
+    /// long dashes = branching/negative relations; short dots = soft/supportive.
+    var dashPattern: [CGFloat] {
+        switch self {
+        case .forksFrom, .contradicts, .blocks, .diagnoses: [7, 5]
+        case .supports, .motivates, .summarizes: [2, 5]
+        default: []
+        }
+    }
+
+    /// Symmetric relations draw an arrowhead on both ends.
+    var isBidirectional: Bool { self == .equivalentTo }
+
+    /// A glyph shown on the edge label so the relation reads at a glance.
+    var glyph: String {
+        switch self {
+        case .uses: "link"
+        case .implies: "arrow.right"
+        case .reducesTo: "arrow.down.right"
+        case .equivalentTo: "equal"
+        case .caseOf: "square.split.2x1"
+        case .generalizes: "arrow.up.backward.and.arrow.down.forward"
+        case .contradicts: "bolt.trianglebadge.exclamationmark"
+        case .dependsOnAssumption: "exclamationmark.triangle"
+        case .forksFrom: "arrow.triangle.branch"
+        case .refines: "scope"
+        case .supports: "hand.thumbsup"
+        case .requires: "checklist"
+        case .motivates: "lightbulb"
+        case .blocks: "hand.raised"
+        case .diagnoses: "stethoscope"
+        case .witnesses: "checkmark.seal"
+        case .constrains: "lock"
+        case .summarizes: "text.append"
         }
     }
 }
