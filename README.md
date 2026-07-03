@@ -140,3 +140,12 @@ Create the certificate secret with:
 ```sh
 base64 -i DeveloperIDApplication.p12 | pbcopy
 ```
+
+## License
+
+Apodexis is released under the [MIT License](LICENSE).
+
+It bundles the following third-party components, which retain their own licenses:
+
+- [SwiftMath](https://github.com/mgriebling/SwiftMath) (math rendering) — MIT, vendored under [`ThirdParty/SwiftMath`](ThirdParty/SwiftMath/LICENSE).
+- The [Latin Modern Math](https://www.gust.org.pl/projects/e-foundry/lm-math) font used for equation rendering — [GUST Font License](ThirdParty/SwiftMath/Sources/SwiftMath/mathFonts.bundle/GUST-FONT-LICENSE.txt).
