@@ -494,7 +494,7 @@ private struct RenderedMathPreview: View {
 
     var body: some View {
         if LaTeXRenderer.containsRenderableLaTeX(text) {
-            Text(LaTeXRenderer.render(text))
+            MathText(source: text, fontSize: 17)
                 .font(.callout)
                 .textSelection(.enabled)
                 .padding(10)

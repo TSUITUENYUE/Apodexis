@@ -538,7 +538,7 @@ private struct EdgeLabel: View {
         if edge.label.isEmpty {
             return edge.kind.title
         }
-        return "\(edge.kind.title) · \(LaTeXRenderer.render(edge.label))"
+        return "\(edge.kind.title) · \(LaTeXRenderer.plain(edge.label))"
     }
 }
 
@@ -874,7 +874,7 @@ private struct NodePageView: View {
 
                     if !node.statement.isEmpty {
                         section("Statement") {
-                            Text(LaTeXRenderer.render(node.statement))
+                            MathText(source: node.statement, fontSize: 21)
                                 .font(.title3)
                                 .textSelection(.enabled)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -968,7 +968,7 @@ private struct NodePageView: View {
     }
 
     private func bodyText(_ text: String) -> some View {
-        Text(LaTeXRenderer.render(text))
+        MathText(source: text, fontSize: 16)
             .font(.body)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)

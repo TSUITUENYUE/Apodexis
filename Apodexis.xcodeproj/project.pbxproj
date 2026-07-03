@@ -18,7 +18,9 @@
 		A00100000000000000000009 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000009 /* InspectorView.swift */; };
 		A0010000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
 		A0010000000000000000000C /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000C /* AssistantView.swift */; };
+		A0010000000000000000000D /* MathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000D /* MathText.swift */; };
 		A0010000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000B /* Assets.xcassets */; };
+		A00900000000000000000001 /* SwiftMath in Frameworks */ = {isa = PBXBuildFile; productRef = A00800000000000000000001 /* SwiftMath */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,12 +35,13 @@
 		A00000000000000000000009 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000A /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000C /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
+		A0000000000000000000000D /* MathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathText.swift; sourceTree = "<group>"; };
 		A0000000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A000000000000000000000F1 /* Apodexis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Apodexis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A00200000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00200000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00900000000000000000001 /* SwiftMath in Frameworks */, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,6 +99,7 @@
 				A00000000000000000000009 /* InspectorView.swift */,
 				A0000000000000000000000A /* ExportView.swift */,
 				A0000000000000000000000C /* AssistantView.swift */,
+				A0000000000000000000000D /* MathText.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -133,6 +137,9 @@
 			dependencies = (
 			);
 			name = Apodexis;
+			packageProductDependencies = (
+				A00800000000000000000001 /* SwiftMath */,
+			);
 			productName = Apodexis;
 			productReference = A000000000000000000000F1 /* Apodexis.app */;
 			productType = "com.apple.product-type.application";
@@ -161,6 +168,9 @@
 				Base,
 			);
 			mainGroup = A000000000000000000000AA;
+			packageReferences = (
+				A00700000000000000000001 /* XCLocalSwiftPackageReference "ThirdParty/SwiftMath" */,
+			);
 			productRefGroup = A000000000000000000000AC /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -190,6 +200,7 @@
 				A00100000000000000000009 /* InspectorView.swift in Sources */,
 				A0010000000000000000000A /* ExportView.swift in Sources */,
 				A0010000000000000000000C /* AssistantView.swift in Sources */,
+				A0010000000000000000000D /* MathText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -384,6 +395,20 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A00700000000000000000001 /* XCLocalSwiftPackageReference "ThirdParty/SwiftMath" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ThirdParty/SwiftMath;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A00800000000000000000001 /* SwiftMath */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SwiftMath;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A00400000000000000000001 /* Project object */;
 }

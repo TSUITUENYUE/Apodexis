@@ -26,7 +26,7 @@ Release DMGs are intended to be Developer ID signed and notarized by Apple. If m
 - Multi-project workspace with folder-backed projects, a file explorer, and a proof explorer for main branches, forks, attempts, and their nodes.
 - Structured node inspector with statement, context, assumptions, proof sketch, formal code, subgoals, symbols, and relations.
 - Lean/Coq/Isabelle/LaTeX-oriented formal hole detection for tokens such as `sorry`, `admit`, `Admitted`, `oops`, and `TODO`.
-- Lightweight LaTeX display rendering for common mathematical symbols, Greek letters, relations, fractions, and simple super/subscripts.
+- Native LaTeX math rendering: single equations are typeset in true 2D (stacked fractions, roots, big operators) with [SwiftMath](https://github.com/mgriebling/SwiftMath), vendored as a local package under `ThirdParty/SwiftMath`; inline math inside prose falls back to a fast Unicode renderer.
 - Open goal tracker.
 - Draggable graph canvas with stable drag behavior, inline node editing, quick status chips, branch centering, and a branch-local auto-layout pass.
 - Local per-project JSON persistence, either in an app-managed project folder or in an opened external folder.
@@ -78,8 +78,9 @@ handwritten work — into an Apodexis graph. There are three ways to do it:
 
 1. **In-app assistant** — the **Assistant** button (⌘⇧I) opens a chat panel inside
    Apodexis. Paste LaTeX or describe a proof and it builds/edits the open graph
-   live via Claude tool calls; every AI edit is one undo step (⌘Z). Add an Anthropic
-   API key once (stored in the macOS Keychain).
+   live via tool calls; every AI edit is one undo step (⌘Z). Choose your provider —
+   **Claude** (Anthropic) or **OpenAI** (GPT-5.x) — and paste that provider's API
+   key once (stored per-provider in the macOS Keychain).
 2. **MCP server** — [integrations/mcp/](integrations/mcp/) lets Claude Desktop/Code
    build graphs into project folders through MCP tools.
 3. **Skill + file** — any file-writing agent produces an `apodexis.json` you open.
