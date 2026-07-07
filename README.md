@@ -91,7 +91,11 @@ Because a project is just a folder with an `apodexis.json`, and the import forma
 above is a stable contract, any of these can produce a graph and you open it. The
 bundled skill teaches an agent how:
 
-- **Skill:** [skills/apodexis-proof-graph/SKILL.md](skills/apodexis-proof-graph/SKILL.md) — decomposition methodology (which node/edge types to use), the output cheat-sheet, and a mandatory validation step.
+- **Skill:** [skills/apodexis-proof-graph/SKILL.md](skills/apodexis-proof-graph/SKILL.md) — decomposition methodology (which node/edge types to use), the output cheat-sheet, and a mandatory validation step. Claude Code picks it up automatically inside this repo (via `.claude/skills`); to use it from any directory, install it once with:
+
+  ```sh
+  cp -R skills/apodexis-proof-graph ~/.claude/skills/
+  ```
 - **Contract:** [skills/apodexis-proof-graph/reference/format-spec.md](skills/apodexis-proof-graph/reference/format-spec.md) — every field and enum value.
 - **Validator:** `python3 skills/apodexis-proof-graph/scripts/validate.py apodexis.json` — checks a file will import cleanly before you open it.
 - **Example:** [skills/apodexis-proof-graph/examples/sqrt2-irrational/](skills/apodexis-proof-graph/examples/sqrt2-irrational/) — a validated graph of the classic √2 proof. Open the folder in Apodexis to see it.
