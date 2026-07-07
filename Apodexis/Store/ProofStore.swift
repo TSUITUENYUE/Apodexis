@@ -13,9 +13,10 @@ final class ProofStore: ObservableObject {
     /// The node currently expanded into a full-page reader, if any.
     @Published var expandedNodeID: UUID?
     @Published var layoutRevision = 0
-    @Published var edgeCreationMode = false
-    @Published var edgeCreationSourceID: UUID?
     @Published var edgeDraftKind: EdgeKind = .uses
+    /// Bumped when a node should be scrolled into view (e.g. from search).
+    @Published private(set) var focusRevision = 0
+    private(set) var focusTargetID: UUID?
 
     /// An in-progress drag-to-connect gesture. `currentPoint` follows the cursor
     /// in canvas coordinates so the workspace can draw a live connector line.
@@ -123,7 +124,6 @@ final class ProofStore: ObservableObject {
         activeProjectID = nil
         selectedBranchID = nil
         selectedNodeID = nil
-        cancelEdgeCreation()
         activeProjectDirectoryURL = nil
         activeGraphFileName = Self.defaultGraphFileName
         projectFiles = []
@@ -203,39 +203,20 @@ final class ProofStore: ObservableObject {
         selectedNodeID = node.id
     }
 
-    func toggleEdgeCreation() {
-        guard hasOpenProject else { return }
-        if edgeCreationMode {
-            cancelEdgeCreation()
-        } else {
-            edgeCreationMode = true
-            edgeCreationSourceID = nil
-        }
+    /// Selects a node and asks the canvas to scroll it into view.
+    func focusNode(id: UUID) {
+        guard project.nodes.contains(where: { $0.id == id }) else { return }
+        selectNode(id: id)
+        focusTargetID = id
+        focusRevision += 1
     }
 
-    func cancelEdgeCreation() {
-        edgeCreationMode = false
-        edgeCreationSourceID = nil
-    }
-
-    func handleEdgeCreationClick(on nodeID: UUID) {
-        guard hasOpenProject, edgeCreationMode else { return }
-        guard project.nodes.contains(where: { $0.id == nodeID }) else { return }
-
-        if let sourceID = edgeCreationSourceID {
-            guard sourceID != nodeID else { return }
-            addEdge(from: sourceID, to: nodeID, kind: edgeDraftKind)
-            cancelEdgeCreation()
-        } else {
-            edgeCreationSourceID = nodeID
-            selectNode(id: nodeID)
-        }
-    }
-
-    func addNode(kind: NodeKind = .claim) {
+    func addNode(kind: NodeKind = .claim, at point: GraphPoint? = nil) {
         guard hasOpenProject else { return }
         let branchID = selectedBranchID ?? project.branches.first?.id ?? createMainBranch()
         let count = project.nodes.filter { $0.branchID == branchID }.count
+        let position = point.map { GraphPoint(x: max(120, $0.x), y: max(90, $0.y)) }
+            ?? GraphPoint(x: 250 + Double(count % 4) * 260, y: 180 + Double(count / 4) * 220)
         let node = ProofNode(
             title: "New \(kind.title)",
             kind: kind,
@@ -247,7 +228,7 @@ final class ProofStore: ObservableObject {
             status: .open,
             verification: .unchecked,
             branchID: branchID,
-            position: GraphPoint(x: 250 + Double(count % 4) * 260, y: 180 + Double(count / 4) * 220),
+            position: position,
             assumptions: [],
             subgoals: [],
             symbols: [],
@@ -258,6 +239,20 @@ final class ProofStore: ObservableObject {
             project.nodes.append(node)
             selectedBranchID = branchID
             selectedNodeID = node.id
+        }
+    }
+
+    /// Copies a node (without its edges) next to the original and selects the copy.
+    func duplicateNode(id: UUID) {
+        guard hasOpenProject, let source = project.nodes.first(where: { $0.id == id }) else { return }
+        var copy = source
+        copy.id = UUID()
+        copy.position = GraphPoint(x: source.position.x + 48, y: source.position.y + 56)
+        copy.createdAt = Date()
+        copy.updatedAt = Date()
+        mutate {
+            project.nodes.append(copy)
+            selectedNodeID = copy.id
         }
     }
 
@@ -415,16 +410,6 @@ final class ProofStore: ObservableObject {
         updateNode(node)
     }
 
-    func resetToSample() {
-        guard hasOpenProject else { return }
-        mutate {
-            project = .sample()
-            project.id = activeProjectID ?? project.id
-            selectedBranchID = project.branches.first?.id
-            selectedNodeID = project.nodes.first?.id
-        }
-    }
-
     /// Creates a brand-new project pre-populated with the worked example so people
     /// can explore a real proof graph before building their own.
     func createSampleProject(title: String = "Sample proof") {
@@ -471,7 +456,6 @@ final class ProofStore: ObservableObject {
         if let nodeID = expandedNodeID, !project.nodes.contains(where: { $0.id == nodeID }) {
             expandedNodeID = nil
         }
-        cancelEdgeCreation()
         pendingConnection = nil
         project.updatedAt = Date()
         layoutRevision += 1
@@ -517,7 +501,6 @@ final class ProofStore: ObservableObject {
 
     func beginConnectionDrag(from nodeID: UUID, at point: GraphPoint) {
         guard hasOpenProject, project.nodes.contains(where: { $0.id == nodeID }) else { return }
-        cancelEdgeCreation()
         selectNode(id: nodeID)
         pendingConnection = PendingConnection(sourceID: nodeID, currentPoint: point)
     }

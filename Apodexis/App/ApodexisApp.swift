@@ -25,6 +25,9 @@ struct ApodexisApp: App {
             CommandGroup(replacing: .undoRedo) {
                 UndoRedoCommands(store: store)
             }
+            CommandGroup(after: .pasteboard) {
+                NodeCommands(store: store)
+            }
         }
     }
 }
@@ -43,5 +46,27 @@ private struct UndoRedoCommands: View {
         Button("Redo") { store.redo() }
             .keyboardShortcut("z", modifiers: [.command, .shift])
             .disabled(!store.canRedo)
+    }
+}
+
+/// Edit-menu commands for the selected node: ⌘D duplicates, ⌘⌫ deletes
+/// (Command-Delete, the Finder convention, so plain typing is never intercepted).
+private struct NodeCommands: View {
+    @ObservedObject var store: ProofStore
+
+    var body: some View {
+        Divider()
+
+        Button("Duplicate Node") {
+            if let id = store.selectedNodeID { store.duplicateNode(id: id) }
+        }
+        .keyboardShortcut("d", modifiers: .command)
+        .disabled(store.selectedNodeID == nil)
+
+        Button("Delete Node") {
+            if let id = store.selectedNodeID { store.deleteNode(id: id) }
+        }
+        .keyboardShortcut(.delete, modifiers: .command)
+        .disabled(store.selectedNodeID == nil)
     }
 }

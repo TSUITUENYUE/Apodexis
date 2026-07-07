@@ -91,15 +91,6 @@ struct ContentView: View {
                     }
                     .disabled(store.selectedNode == nil || !store.hasOpenProject)
 
-                    Button {
-                        store.toggleEdgeCreation()
-                    } label: {
-                        Label(store.edgeCreationMode ? "Connecting…" : "Connect",
-                              systemImage: store.edgeCreationMode ? "link.badge.plus" : "link")
-                    }
-                    .keyboardShortcut("l", modifiers: .command)
-                    .disabled(!store.hasOpenProject)
-
                     Menu {
                         ForEach(EdgeKind.allCases) { kind in
                             Button {
@@ -111,6 +102,7 @@ struct ContentView: View {
                     } label: {
                         Label(store.edgeDraftKind.title, systemImage: "line.diagonal")
                     }
+                    .help("Relation used when you drag from a node's connector handle")
                     .disabled(!store.hasOpenProject)
 
                     Button {

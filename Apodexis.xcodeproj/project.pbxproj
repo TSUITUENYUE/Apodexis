@@ -19,6 +19,7 @@
 		A0010000000000000000000A /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000A /* ExportView.swift */; };
 		A0010000000000000000000C /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000C /* AssistantView.swift */; };
 		A0010000000000000000000D /* MathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000D /* MathText.swift */; };
+		A0010000000000000000000E /* NodePDFExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000E /* NodePDFExport.swift */; };
 		A0010000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000B /* Assets.xcassets */; };
 		A00900000000000000000001 /* SwiftMath in Frameworks */ = {isa = PBXBuildFile; productRef = A00800000000000000000001 /* SwiftMath */; };
 /* End PBXBuildFile section */
@@ -36,6 +37,7 @@
 		A0000000000000000000000A /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000C /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
 		A0000000000000000000000D /* MathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathText.swift; sourceTree = "<group>"; };
+		A0000000000000000000000E /* NodePDFExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodePDFExport.swift; sourceTree = "<group>"; };
 		A0000000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A000000000000000000000F1 /* Apodexis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Apodexis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -100,6 +102,7 @@
 				A0000000000000000000000A /* ExportView.swift */,
 				A0000000000000000000000C /* AssistantView.swift */,
 				A0000000000000000000000D /* MathText.swift */,
+				A0000000000000000000000E /* NodePDFExport.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -201,6 +204,7 @@
 				A0010000000000000000000A /* ExportView.swift in Sources */,
 				A0010000000000000000000C /* AssistantView.swift in Sources */,
 				A0010000000000000000000D /* MathText.swift in Sources */,
+				A0010000000000000000000E /* NodePDFExport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

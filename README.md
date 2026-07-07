@@ -28,10 +28,10 @@ Release DMGs are intended to be Developer ID signed and notarized by Apple. If m
 - Lean/Coq/Isabelle/LaTeX-oriented formal hole detection for tokens such as `sorry`, `admit`, `Admitted`, `oops`, and `TODO`.
 - Native LaTeX math rendering: single equations are typeset in true 2D (stacked fractions, roots, big operators) with [SwiftMath](https://github.com/mgriebling/SwiftMath), vendored as a local package under `ThirdParty/SwiftMath`; inline math inside prose falls back to a fast Unicode renderer.
 - Open goal tracker.
-- Draggable graph canvas with stable drag behavior, inline node editing, quick status chips, branch centering, and a branch-local auto-layout pass.
+- Draggable graph canvas with compact node chips that expand into a full-page reader, drag-to-connect handles, double-click-to-add, node search (⌘F), undo/redo, branch centering, and a branch-local auto-layout pass.
 - Local per-project JSON persistence, either in an app-managed project folder or in an opened external folder.
 - Optional node source links via `sourceFile` and `sourceLine`, intended for Lean and other formalization files.
-- Markdown export and clipboard copy.
+- Markdown export and clipboard copy, plus PDF export: the full proof graph (chips, connection curves, relation labels) from the canvas, and single nodes (typeset math included) from the node page.
 - Human-editable JSON import via the `Import JSON` toolbar button.
 
 ## Project Folders

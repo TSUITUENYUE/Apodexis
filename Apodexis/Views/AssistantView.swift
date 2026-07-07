@@ -253,9 +253,22 @@ final class AssistantViewModel: ObservableObject {
         {"nodes":[{"id":"lem","type":"lemma","title":"Area lemma"}],"edges":[{"from":"lem","to":"thm","type":"supports"}]}
         ```
 
-        User request:
+        \(claudeCodeTranscript())User request:
         \(userText)
         """
+    }
+
+    /// Recent chat turns so follow-ups ("now mark it proven") have context even
+    /// though each Claude Code call is a fresh process.
+    private func claudeCodeTranscript() -> String {
+        var history = messages.filter { $0.role != .status }
+        if history.last?.role == .user { history.removeLast() }   // the message being sent now
+        let recent = history.suffix(8)
+        guard !recent.isEmpty else { return "" }
+        let lines = recent.map { message in
+            "\(message.role == .user ? "User" : "Assistant"): \(String(message.text.prefix(600)))"
+        }
+        return "Conversation so far:\n" + lines.joined(separator: "\n") + "\n\n"
     }
 
     /// Extracts the first balanced top-level JSON object from arbitrary text.
