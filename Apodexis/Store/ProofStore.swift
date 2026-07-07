@@ -116,7 +116,10 @@ final class ProofStore: ObservableObject {
             projectIndex.lastOpenProjectID = summary.id
             persistIndex()
         } catch {
-            assertionFailure("Failed to open Apodexis project: \(error)")
+            // The graph may be mid-write by an external tool (e.g. an AI agent
+            // regenerating apodexis.json). Never crash — stay on the welcome
+            // screen; the project stays in the sidebar and the next open retries.
+            NSLog("Apodexis: could not open project '%@': %@", summary.title, String(describing: error))
         }
     }
 

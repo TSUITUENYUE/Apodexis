@@ -831,7 +831,7 @@ private struct NodeExpansionOverlay: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .fill(.black.opacity(0.28))
+                .fill(.black.opacity(0.22))
                 .ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture { dismiss() }
@@ -853,6 +853,29 @@ private struct NodeExpansionOverlay: View {
     private func dismiss() {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
             store.expandedNodeID = nil
+        }
+    }
+}
+
+/// The expanded page's surface. On macOS 26+ this is Apple's real-time Liquid
+/// Glass — the system material that refracts the live canvas behind it — with a
+/// hint of the node's tint. Earlier systems keep the classic material card.
+private struct GlassPageSurface: ViewModifier {
+    let tint: Color
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content
+                .glassEffect(.regular.tint(tint.opacity(0.07)), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .shadow(color: .black.opacity(0.2), radius: 26, y: 12)
+        } else {
+            content
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(tint.opacity(0.25), lineWidth: 1)
+                }
+                .shadow(color: .black.opacity(0.3), radius: 30, y: 14)
         }
     }
 }
@@ -922,12 +945,7 @@ private struct NodePageView: View {
             }
         }
         .frame(maxWidth: 720, maxHeight: 720)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(node.kind.tint.opacity(0.25), lineWidth: 1)
-        }
-        .shadow(color: .black.opacity(0.3), radius: 30, y: 14)
+        .modifier(GlassPageSurface(tint: node.kind.tint))
     }
 
     private var topBar: some View {
