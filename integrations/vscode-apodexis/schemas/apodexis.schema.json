@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Apodexis proof graph",
+  "description": "An Apodexis proof graph. Accepts both the simple import format (string ids, from/to edges) and the format the Apodexis app saves (UUID ids, sourceID/targetID edges).",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "description": "Project title." },
+    "id": { "type": "string" },
+    "updatedAt": { "type": "string" },
+    "branches": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/branch" }
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/edge" }
+    }
+  },
+  "required": ["nodes"],
+  "definitions": {
+    "nodeKind": {
+      "enum": [
+        "theorem", "conjecture", "definition", "assumption", "lemma", "claim",
+        "proposal", "strategy", "conclusion", "goal", "reduction", "caseSplit",
+        "inductionStep", "construction", "counterexample", "failedAttempt", "formalCode"
+      ]
+    },
+    "edgeKind": {
+      "enum": [
+        "uses", "implies", "reducesTo", "equivalentTo", "caseOf", "generalizes",
+        "contradicts", "dependsOnAssumption", "forksFrom", "refines", "supports",
+        "requires", "motivates", "blocks", "diagnoses", "witnesses", "constrains",
+        "summarizes"
+      ]
+    },
+    "proofStatus": {
+      "enum": ["open", "inProgress", "blocked", "needsReview", "proven", "failed", "abandoned"]
+    },
+    "branchStatus": {
+      "enum": ["active", "blocked", "stuck", "abandoned", "merged"]
+    },
+    "verification": {
+      "enum": ["unchecked", "checked", "partial", "checking", "verified", "failed"]
+    },
+    "formalDialect": {
+      "enum": ["latex", "lean", "coq", "isabelle", "pseudocode", "swift", "python"]
+    },
+    "position": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      },
+      "required": ["x", "y"]
+    },
+    "subgoal": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "detail": { "type": "string" },
+        "status": { "$ref": "#/definitions/proofStatus" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title"]
+    },
+    "symbol": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "symbol": { "type": "string" },
+        "meaning": { "type": "string" },
+        "scope": { "type": "string" }
+      },
+      "required": ["symbol", "meaning"]
+    },
+    "branch": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "summary": { "type": "string" },
+        "status": { "$ref": "#/definitions/branchStatus" },
+        "color": { "type": "string", "description": "Import format: blue, pink, green, orange, purple, red." },
+        "colorName": { "type": "string", "description": "App format branch color." },
+        "parent": { "type": "string" },
+        "parentBranchID": { "type": "string" },
+        "forkedFrom": { "type": "string" },
+        "forkedFromNodeID": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "node": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique id, referenced by edges." },
+        "title": { "type": "string", "description": "Short label; LaTeX allowed." },
+        "type": { "$ref": "#/definitions/nodeKind", "description": "Import-format node kind." },
+        "kind": { "$ref": "#/definitions/nodeKind", "description": "App-format node kind." },
+        "branch": { "type": "string", "description": "Import format: branch id this node belongs to." },
+        "branchID": { "type": "string", "description": "App format: branch id this node belongs to." },
+        "statement": { "type": "string", "description": "The precise claim (LaTeX)." },
+        "context": { "type": "string" },
+        "proofSketch": { "type": "string" },
+        "formalCode": { "type": "string" },
+        "formalDialect": { "$ref": "#/definitions/formalDialect" },
+        "status": { "$ref": "#/definitions/proofStatus" },
+        "verification": { "$ref": "#/definitions/verification" },
+        "position": { "$ref": "#/definitions/position" },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "subgoals": { "type": "array", "items": { "$ref": "#/definitions/subgoal" } },
+        "symbols": { "type": "array", "items": { "$ref": "#/definitions/symbol" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "sourceFile": { "type": "string", "description": "Path relative to the project folder; enables jump-to-source." },
+        "sourceLine": { "type": "integer" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title"]
+    },
+    "edge": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "from": { "type": "string", "description": "Import format: source node id." },
+        "to": { "type": "string", "description": "Import format: target node id." },
+        "sourceID": { "type": "string", "description": "App format: source node id." },
+        "targetID": { "type": "string", "description": "App format: target node id." },
+        "type": { "$ref": "#/definitions/edgeKind", "description": "Import-format relation." },
+        "kind": { "$ref": "#/definitions/edgeKind", "description": "App-format relation." },
+        "label": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "anyOf": [
+        { "required": ["from", "to", "type"] },
+        { "required": ["sourceID", "targetID", "kind"] }
+      ]
+    }
+  }
+}

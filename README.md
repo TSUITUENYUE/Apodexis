@@ -87,6 +87,12 @@ handwritten work — into an Apodexis graph. There are three ways to do it:
    build graphs into project folders through MCP tools.
 3. **Skill + file** — any file-writing agent produces an `apodexis.json` you open.
 
+There is also a **VS Code / Cursor extension** —
+[integrations/vscode-apodexis/](integrations/vscode-apodexis/) — that renders the
+proof graph in a webview (pan/zoom, branch filter, click-through to
+`sourceFile:sourceLine`), validates `apodexis.json`, and provides schema-backed
+editing with autocompletion for every node/edge type.
+
 Because a project is just a folder with an `apodexis.json`, and the import format
 above is a stable contract, any of these can produce a graph and you open it. The
 bundled skill teaches an agent how:

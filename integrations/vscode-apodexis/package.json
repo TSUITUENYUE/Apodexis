@@ -1,0 +1,54 @@
+{
+  "name": "vscode-apodexis",
+  "displayName": "Apodexis Proof Graphs",
+  "description": "View, validate, and navigate Apodexis proof graphs (apodexis.json) — typed nodes, semantic relations, jump-to-source.",
+  "version": "0.1.0",
+  "publisher": "apodexis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TSUITUENYUE/Apodexis"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "workspaceContains:**/apodexis.json"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "apodexis.showGraph",
+        "title": "Apodexis: Show Proof Graph",
+        "icon": "$(type-hierarchy-sub)"
+      },
+      {
+        "command": "apodexis.validate",
+        "title": "Apodexis: Validate Proof Graph"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "apodexis.showGraph",
+          "when": "resourceFilename == apodexis.json",
+          "group": "navigation"
+        }
+      ]
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "apodexis.json",
+          "proof-chain.json"
+        ],
+        "url": "./schemas/apodexis.schema.json"
+      }
+    ]
+  }
+}
