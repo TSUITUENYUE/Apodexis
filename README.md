@@ -4,7 +4,9 @@ Apodexis is a SwiftUI app for organizing long mathematical and scientific proof 
 
 ## Preview
 
-![Apodexis proof graph workspace](Docs/apodexis-screenshot.png)
+![The classic proof that √2 is irrational as an Apodexis proof graph](Docs/apodexis-sqrt2-graph.png)
+
+The classic proof that √2 is irrational, decomposed into typed nodes and semantic relations — the same example ships in [skills/apodexis-proof-graph/examples/sqrt2-irrational](skills/apodexis-proof-graph/examples/sqrt2-irrational), ready to open with **Open Folder** or rebuild via the AI assistant.
 
 ## Targets
 
